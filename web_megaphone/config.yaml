@@ -27,6 +27,7 @@ ports:
 
 map:
   - share:rw
+  - config:rw
 
 options:
   volume1: 40
