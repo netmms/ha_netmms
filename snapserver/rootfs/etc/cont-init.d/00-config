@@ -1,0 +1,21 @@
+#!/usr/bin/with-contenv sh
+set -eu
+
+# Create a default data dir for user assets (e.g., pipes, playlists)
+mkdir -p /share/snapserver
+
+# Generate snapserver.conf from add-on options
+/usr/local/bin/gen-snapserver-conf > /etc/snapserver.conf
+
+echo "[cont-init.d] Generated /etc/snapserver.conf:"
+sed 's/^/  /' /etc/snapserver.conf
+
+# add into rootfs/etc/cont-init.d/00-config before generating the config
+STREAM_URI="$(jq -r '.stream' /data/options.json 2>/dev/null || echo)"
+case "$STREAM_URI" in
+  pipe:///share/snapserver/*)
+    mkdir -p /share/snapserver
+    FIFO_PATH="$(printf '%s\n' "$STREAM_URI" | sed -E 's#^pipe://([^?]+).*#\1#')"
+    [ -p "$FIFO_PATH" ] || { rm -f "$FIFO_PATH"; mkfifo "$FIFO_PATH"; chmod 666 "$FIFO_PATH"; }
+    ;;
+esac

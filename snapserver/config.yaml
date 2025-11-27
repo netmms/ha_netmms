@@ -1,0 +1,54 @@
+name: Snapserver Pipe
+version: "0.09"
+slug: snapserver_pipe
+description: Run Snapcast server (Snapserver) to stream synchronized audio across clients.
+url: https://github.com/netmms/ha_netmms/tree/main/snapserver_pipe
+arch:
+  - aarch64
+  - amd64
+  - armv7
+init: false
+startup: services
+boot: auto
+stage: stable
+host_network: true
+# If you prefer not to use host networking, comment host_network and uncomment ports below.
+#ports:
+#  1704/tcp: 1704  # Snapcast stream
+#  1705/tcp: 1705  # Snapcast control (JSON-RPC/TCP)
+#  1780/tcp: 1780  # Snapcast HTTP API & web UI
+map:
+  - share:rw
+options:
+  stream: "pipe:///share/snapserver/stream?name=Main&mode=read"  # e.g. pipe, mpd, rtp, etc.
+  sampleformat: "48000:16:2"
+  buffer_ms: 2000
+  latency_ms: 0
+  http_enabled: true
+  http_bind: "0.0.0.0"
+  http_port: 1780
+  rpc_bind: "0.0.0.0"
+  rpc_port: 1705
+  stream_port: 1704
+  extra_args: ""
+  http_enabled: true
+  http_bind: "0.0.0.0"
+  http_port: 1780
+  http_doc_root: "/usr/share/snapserver/snapweb"
+schema:
+  stream: str
+  sampleformat: str
+  buffer_ms: int
+  latency_ms: int
+  http_enabled: bool
+  http_bind: str
+  http_port: int
+  rpc_bind: str
+  rpc_port: int
+  stream_port: int
+  extra_args: str
+  http_enabled: bool
+  http_bind: str
+  http_port: int
+  http_doc_root: str
+#image: "local/snapserver-{arch}"

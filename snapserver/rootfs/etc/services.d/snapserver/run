@@ -1,0 +1,10 @@
+#!/usr/bin/with-contenv sh
+set -eu
+
+# Optional extra args from options.json
+EXTRA_ARGS="$(jq -r '.extra_args' /data/options.json)"
+[ "$EXTRA_ARGS" = "null" ] && EXTRA_ARGS=""
+
+echo "[services.d] Starting snapserver..."
+exec /usr/bin/snapserver -c /etc/snapserver.conf $EXTRA_ARGS
+

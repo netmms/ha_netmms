@@ -1,0 +1,3 @@
+#!/usr/bin/with-contenv sh
+# Called when the service exits; keep simple for s6
+exit 0
