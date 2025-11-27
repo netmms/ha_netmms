@@ -3,8 +3,8 @@
 DEF_VOL1=$(bashio::config 'volume1')
 DEF_VOL2=$(bashio::config 'volume2')
 
-USE_PIPE="${USE_PIPE}"
-PIPE_PATH="${PIPE_PATH}"
+USE_PIPE=$(bashio::config 'use_pipe')
+PIPE_PATH=$(bashio::config 'pipe')
 
 bashio::log.info "Playing message: vol1=${DEF_VOL1} vol2=${DEF_VOL2} pipe=${USE_PIPE}"
 
