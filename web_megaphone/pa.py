@@ -67,18 +67,18 @@ class MyServer(SimpleHTTPRequestHandler):
         if path == "/":
             path = "/index.html"
 
-        # Serve from /html directory inside the container
-        path = "html" + path
+        # Serve from /html directory inside container
+        full_path = "html" + path
 
-        html = read_file(path)
+        html = read_file(full_path)
         if not html:
             self.send_error(404, "Not Found")
         else:
-            self.do_HEAD(content_type(path))
+            self.do_HEAD(content_type(full_path))
             self.wfile.write(html)
 
     def do_POST(self):
-        # Read the content length from headers
+        # Read Content-Length
         try:
             length = int(self.headers.get("Content-Length", "0"))
         except ValueError:
@@ -90,26 +90,26 @@ class MyServer(SimpleHTTPRequestHandler):
 
         body = self.rfile.read(length)
 
+        # Expect multipart
         content_type_header = self.headers.get("Content-Type", "")
         if "multipart/form-data" not in content_type_header or "boundary=" not in content_type_header:
             self.send_error(400, "Bad Request: expected multipart/form-data")
             return
 
+        # Extract boundary
         boundary = content_type_header.split("boundary=", 1)[1].strip()
         if boundary.startswith('"') and boundary.endswith('"'):
             boundary = boundary[1:-1]
         boundary = boundary.encode()
 
-        # Split by boundary
+        # Parse multipart parts
         parts = body.split(b"--" + boundary)
         audio_data = None
 
         for part in parts:
             if b"Content-Disposition" in part and b'name="audio_data"' in part:
-                # Separate headers from body on first double CRLF
                 if b"\r\n\r\n" in part:
                     _, data = part.split(b"\r\n\r\n", 1)
-                    # Strip trailing boundary CRLF/final markers
                     audio_data = data.rstrip(b"\r\n")
                     break
 
@@ -117,7 +117,7 @@ class MyServer(SimpleHTTPRequestHandler):
             self.send_error(400, "Bad Request: audio_data field not found")
             return
 
-        # Save the received audio to /msg.wav
+        # Save WAV
         try:
             with open("/msg.wav", "wb") as f:
                 f.write(audio_data)
@@ -126,18 +126,18 @@ class MyServer(SimpleHTTPRequestHandler):
             self.send_error(500, "Internal Server Error: cannot write file")
             return
 
-        # Trigger playback script (blocking, simple)
+        # Trigger playback
         os.system("/play_msg.sh")
 
-        # Redirect back to main page
+        # Redirect back to page
         self._redirect("/")
 
 
 def init_server(flag, port):
     certfile = "/ssl/wm.cert.pem"
-    keyfile  = "/ssl/wm.key.pem"
+    keyfile = "/ssl/wm.key.pem"
 
-    # Certificate existence check (MUST be indented under the function)
+    # Certificate check
     if not os.path.isfile(certfile) or not os.path.isfile(keyfile):
         print(
             f"ERROR: Certificate or key not found at {certfile} / {keyfile}",
@@ -159,6 +159,7 @@ def init_server(flag, port):
         httpd.serve_forever()
         httpd.server_close()
 
+
 if __name__ == "__main__":
-    # Start HTTPS server on port 8001
     init_server(2, 8001)
+
