@@ -31,7 +31,7 @@ This add-on enables synchronized, low-latency, multi-room audio streaming across
 - Customizable sample rates, buffers, and stream setups
 
 **Documentation:**  
-See the add-on’s own `README.md` and `DOCS.md` inside the `snapserver/` folder.
+See the add-on’s own `README.md` and `DOCS.md` inside the `snapserver_pipe/` folder.
 
 ## Installation
 
