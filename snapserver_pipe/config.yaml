@@ -1,5 +1,5 @@
 name: Snapserver Pipe
-version: "0.09"
+version: "1.00"
 slug: snapserver_pipe
 description: Run Snapcast server (Snapserver) to stream synchronized audio across clients.
 url: https://github.com/netmms/ha_netmms/tree/main/snapserver_pipe
