@@ -1,112 +1,145 @@
 # NETMMS Home Assistant Add-ons
 
-A curated collection of high-quality, purpose-built **Home Assistant add-ons** created and maintained by **NETMMS**.  
-This repository provides easy installation and seamless updates through the Home Assistant Add-on Store.
+A curated collection of advanced, production-quality Home Assistant add-ons designed for local audio, distributed audio, and web-based PA (public address) systems.
 
-## About This Repository
+This repository contains:
 
-**NETMMS Home Assistant Addons** is a custom add-on repository designed to extend Home Assistant with useful, reliable, and well-maintained add-ons — starting with the **Snapserver Add-on**, a lightweight audio synchronization server based on Snapcast.
+- **Local Audio Player** — play audio files locally or stream them into Snapserver.
+- **Snapserver Pipe** — backbone of multi-room audio distribution using a named pipe.
+- **Web Megaphone** — an HTTPS, airport-style PA system that records and plays announcements.
 
-This repository is compatible with:
+---
 
-- **Home Assistant OS**
-- **Home Assistant Supervised**
-- **Home Assistant Container** (via Add-on support add-ons)
-- **Home Assistant Blue / Yellow**
+# Architecture Overview
 
-Simply add this repository to Home Assistant and install the add-ons you need.
+```
+┌───────────────────┐       ┌──────────────────────┐
+│ Local Audio Player │──────▶│ Snapserver Pipe FIFO │──────▶ Snapclients
+└───────────────────┘       └──────────────────────┘
 
-## Available Add-ons
+┌───────────────────┐
+│ Web Megaphone     │──────▶ (local speakers OR Snapserver Pipe)
+└───────────────────┘
+```
 
-### Snapserver Add-on
-A fully featured Snapcast server packaged for Home Assistant.  
-This add-on enables synchronized, low-latency, multi-room audio streaming across your home network.
+### Components
 
-**Features:**
-- Full Snapserver implementation
-- Support for pipe, MPD, RTP and other stream inputs
-- Auto-generated configuration
-- Web UI (Snapweb)
-- Host or container networking
-- Customizable sample rates, buffers, and stream setups
+- **Local Audio Player**  
+  Plays local audio files from `/config/www`, or streams decoded PCM into the Snapserver pipe.
 
-**Documentation:**  
-See the add-on’s own `README.md` and `DOCS.md` inside the `snapserver_pipe/` folder.
+- **Snapserver Pipe**  
+  Provides a named FIFO that Snapserver reads to distribute audio across all connected Snapclients.
 
-## Installation
+- **Web Megaphone**  
+  A browser-based HTTPS PA system that plays an alert beep and then your recorded message.
 
-### 1. Add the repository to Home Assistant
+---
+
+# Installation
 
 In Home Assistant:
 
-1. Navigate to  
-   **Settings → Add-ons → Add-on Store**
-2. Click the **⋮ (three dots)** menu in the top-right.
-3. Choose **Repositories**.
-4. Add this URL:
+1. Go to **Add-on Store → Repositories**.
+2. Add the repository URL:
 
 ```
 https://github.com/netmms/ha_netmms
 ```
 
-5. Click **Add**, then close the dialog.
+3. Install add-ons from the `NETMMS Home Assistant Add-ons` section.
 
-You will now see a new section:
+---
 
-> **NETMMS Home Assistant Add-ons**
+# Examples & Automations
 
-### 2. Install any add-on
+## 1. Play a doorbell sound through Snapserver using Local Audio Player
 
-1. Click the add-on you want (e.g., **Snapserver**).
-2. Click **Install**.
-3. Configure the options as desired.
-4. Click **Start**.
-
-## Updating
-
-Whenever the repository or an add-on updates, Home Assistant will automatically show an **Update Available** button.
-
-Add-ons follow semantic versioning:
-
-```
-MAJOR.MINOR.PATCH
+```yaml
+script:
+  doorbell_chime:
+    alias: Doorbell Chime
+    sequence:
+      - service: hassio.addon_stdin
+        data:
+          addon: local_audio
+          input: "/config/www/doorbell.wav;85"
 ```
 
-Always check the add-on `CHANGELOG.md` before upgrading.
+This works when `local_audio` is configured with:
 
-## Repository Structure
-
-```
-ha_netmms/
-│
-├── repository.json         # Home Assistant repo manifest
-├── README.md               # This file
-│
-└── snapserver_pipe/             # First add-on
-    ├── config.yaml
-    ├── Dockerfile
-    ├── README.md
-    ├── DOCS.md
-    ├── CHANGELOG.md
-    └── rootfs/
+```yaml
+use_pipe: true
+pipe: "/share/snapserver/stream"
 ```
 
-Each add-on is fully self-contained.
+---
 
-## Contributing
+## 2. Trigger an airport-style announcement using Web Megaphone
 
-Contributions, improvements, and issue reports are welcome!  
-Feel free to open:
+This script lets you overwrite the message file and then play it:
 
-- **Issues** for bugs or feature requests
-- **Pull requests** for enhancements
+```yaml
+script:
+  pa_announcement:
+    alias: PA Announcement
+    sequence:
+      - service: shell_command.set_pa_message
+      - service: hassio.addon_stdin
+        data:
+          addon: web_megaphone
+          input: "play"
+```
 
-Please follow Home Assistant add-on development conventions.
+Example `shell_command`:
 
-## License
+```yaml
+shell_command:
+  set_pa_message: "cp /config/www/announcement.wav /msg.wav"
+```
 
-This project is provided under the **MIT License**, unless otherwise noted inside specific add-ons.
+---
 
-## Acknowledgments
+## 3. Scheduled announcement example
 
-Special thanks to the Home Assistant community, Snapcast developers, and all contributors who make open-source home automation possible.
+```yaml
+automation:
+  - alias: Evening Reminder
+    trigger:
+      - platform: time
+        at: "21:00:00"
+    action:
+      - service: shell_command.set_pa_message
+      - service: hassio.addon_stdin
+        data:
+          addon: web_megaphone
+          input: "play"
+```
+
+---
+
+# Troubleshooting
+
+### Audio not playing in Snapserver mode
+
+- Ensure the pipe exists: `ls -l /share/snapserver/stream`
+- Ensure the add-on has in its `config.yaml`:
+
+```
+map:
+  - share:rw
+```
+
+### Local Audio Player cannot find files
+
+Files must exist under `/config/www` — upload using File Editor or Samba.
+
+### Web Megaphone “Pipe missing” error
+
+Snapserver Pipe must be running **before** using pipe mode.
+
+---
+
+# License
+
+MIT License unless otherwise stated.
+

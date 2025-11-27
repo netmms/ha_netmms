@@ -1,51 +1,37 @@
 # Web Megaphone Add-on for Home Assistant
 
-The **Web Megaphone** add-on provides an HTTPS-based public-address (PA) system for Home Assistant — similar to a real **airport PA**:
+The **Web Megaphone** add-on provides an HTTPS-based, airport-style public address (PA) system for your Home Assistant installation.  
+Record short announcements in your browser, then play them through either:
 
-1. You record a short message from your browser or web UI.
-2. The add-on stores it as `msg.wav`.
-3. It plays an alert chime (`pa_sound.wav`).
-4. It plays your recorded message through either:
-   - the Home Assistant host speakers (local ALSA), or
-   - your whole-home Snapserver system (via pipe mode).
+- The Home Assistant host speakers **(local ALSA)**  
+- OR your entire home using **Snapserver Pipe** multiroom audio  
 
 This add-on is part of the **NETMMS Home Assistant Add-ons** collection.
 
 ---
 
-## Overview
+# Features
 
-The Web Megaphone add-on exposes **one HTTPS endpoint** on **port 8001**.
-Any device on your network (phone, tablet, PC) can:
-
-- Open the web interface
-- Record a short message
-- Trigger the PA announcement
-
-The add-on then:
-
-1. Plays an alert tone (`pa_sound.wav`)
-2. Plays the recorded message (`msg.wav`)
-3. At volumes you control (`volume1` and `volume2`)
-4. Either locally or via Snapserver Pipe for distributed audio
-
----
-
-## Features
-
-- Airport-style PA workflow: record → chime → announce
-- HTTPS-enabled server with your own certificate
-- Browser-based UI (no client installation)
-- Fully local – no cloud voice processing
-- Optional Snapserver Pipe mode for whole-home broadcasting
-- Adjustable chime and message volumes  
+- Browser-based message recorder (no app needed)
+- Secure **HTTPS server** on port **8001**
+- Airport-style workflow:
+  1. Record message  
+  2. Chime plays  
+  3. Message plays  
+- Adjustable volumes:
+  - `volume1` → Alert tone (chime)
+  - `volume2` → Message
+- Two output modes:
+  - **Local playback** using `aplay`
+  - **Multiroom playback** using `sox → Snapserver Pipe`
+- Supports user-provided or bundled certificates (stored in `/certs`)
 - Works on all Home Assistant CPU architectures
 
 ---
 
-## Configuration
+# Configuration
 
-### Options
+Add-on options:
 
 ```yaml
 volume1: 40
@@ -54,14 +40,18 @@ use_pipe: false
 pipe: "/share/snapserver/stream"
 ```
 
-| Option | Purpose |
-|--------|---------|
-| `volume1` | Volume (0–100) for **alert tone** |
-| `volume2` | Volume (0–100) for **recorded message** |
-| `use_pipe` | `false` = play locally, `true` = stream to Snapserver Pipe |
-| `pipe` | Named pipe (FIFO) path for Snapserver |
+## Options explained
 
-### Required mapping
+| Option | Description |
+|--------|-------------|
+| **volume1** | Volume (0–100) for the alert chime (`pa_sound.wav`) |
+| **volume2** | Volume (0–100) for recorded message (`msg.wav`) |
+| **use_pipe** | `false` = Play locally via ALSA, `true` = Stream to Snapserver |
+| **pipe** | FIFO path for Snapserver (used only if `use_pipe = true`) |
+
+## Required Folder Mappings
+
+Your `config.yaml` must include:
 
 ```yaml
 map:
@@ -70,102 +60,94 @@ map:
   - certs:rw
 ```
 
-`share` is required for Snapserver Pipe.  
-`certs` is required for HTTPS certificates.
+- `/share` → needed for Snapserver Pipe  
+- `/certs` → where HTTPS certificates (`wm.cert.pem` / `wm.key.pem`) reside  
 
 ---
 
-## Playback Logic
+# Web UI
 
-### Local playback (`use_pipe: false`)
-
-```
-amixer → set volume1
-aplay pa_sound.wav
-amixer → set volume2
-aplay msg.wav
-```
-
-### Pipe playback (`use_pipe: true`)
+Open:
 
 ```
-sox pa_sound.wav → raw PCM → pipe
-sox msg.wav → raw PCM → pipe
+https://<homeassistant>:8001/
 ```
 
-This streams audio into Snapserver for multiroom announcements.
+You may need to accept a self-signed certificate warning.
+
+The interface lets you:
+
+- Record a new announcement  
+- Preview  
+- Submit  
+- Trigger the PA playback  
 
 ---
 
-## Ports
+# Playback Behavior
 
-| Port | Purpose |
-|------|---------|
-| **8001/tcp** | HTTPS PA interface |
+## Local playback mode (`use_pipe: false`)
 
-There is **no port 8000**.
-
----
-
-## Using the Web UI
-
-1. Open:  
-   ```
-   https://<homeassistant>:8001/
-   ```
-2. Record your message.
-3. Submit it.
-4. Hear the chime and announcement through your selected audio mode.
-
----
-
-## Snapserver Integration
-
-Enable this if you want your PA messages to play over all Snapclients.
-
-1. Install **Snapserver Pipe** add-on.
-2. Ensure FIFO exists:  
-   ```
-   /share/snapserver/stream
-   ```
-3. Configure Web Megaphone:
-
-```yaml
-use_pipe: true
-pipe: "/share/snapserver/stream"
+```
+amixer sset Master volume1 → play pa_sound.wav
+amixer sset Master volume2 → play msg.wav
 ```
 
-4. Play announcements through Snapcast automatically.
+Plays through Home Assistant host speakers.
 
 ---
 
-## Troubleshooting
+## Snapserver mode (`use_pipe: true`)
+
+```
+sox pa_sound.wav → /share/snapserver/stream
+sox msg.wav → /share/snapserver/stream
+```
+
+Your PA message is heard in **every room with a Snapclient**.
+
+---
+
+# Creating Certificates
+
+Store certificates in `/ssl` (mapped as `/certs`).  
+To generate a 10-year certificate:
+
+```bash
+cd /ssl
+openssl req -x509 -nodes -newkey rsa:2048   -keyout wm.key.pem   -out wm.cert.pem   -days 3650   -subj "/CN=web-megaphone"
+```
+
+Copy them into your add-on or use `/certs` mapping.
+
+---
+
+# Troubleshooting
 
 ### “Pipe missing”
-- Ensure Snapserver Pipe is running  
-- Make sure `/share/snapserver/stream` exists  
-- Confirm `share:rw` is mapped
+- Confirm Snapserver Pipe is installed & running
+- FIFO must exist at `/share/snapserver/stream`
 
 ### “404 Not Found”
-Check that your UI assets exist in:
+Ensure your front-end files exist in:
+
 ```
 html/index.html
 ```
 
-### HTTPS warnings
-Self-signed certificates are normal for internal LAN.
+### Browser HTTPS warnings
+Self-signed certificates always warn; this is normal on LAN.
 
 ---
 
-## License
+# License
 
-MIT License unless specified otherwise.
+MIT License unless otherwise specified.
 
 ---
 
-## Credits
+# Credits
 
 - Snapcast by badaix  
 - Home Assistant community  
-- NETMMS PA System contributors  
-- Inspired by real-world airport PA announcements
+- NETMMS contributors  
