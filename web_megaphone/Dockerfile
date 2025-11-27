@@ -16,7 +16,7 @@ RUN apk add --no-cache python3
 # Copy data
 COPY run.sh pa.py play_msg.sh /
 COPY pa_sound.wav /
-COPY pzpray.local.key.pem pzpray.local.cert.pem /
+#COPY pzpray.local.key.pem pzpray.local.cert.pem /
 # Copies only the files, no way otherwisd
 RUN mkdir /html
 COPY html /html
