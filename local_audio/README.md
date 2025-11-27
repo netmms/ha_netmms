@@ -1,6 +1,7 @@
-# Local Audio Player Add-on for Home Assistant
+# Web Megaphone Add-on for Home Assistant
 
-The **Local Audio Player** add-on allows Home Assistant to play audio files **locally on the Home Assistant host**, or alternatively **send decoded PCM audio into a Snapserver pipe** for synchronized multi-room audio.
+The **Web Megaphone** add-on provides a flexible, browser-accessible public-address (PA) audio system that runs directly on your Home Assistant host.  
+It allows any device on your network to open a simple web page and broadcast live audio or trigger audio playback through two independently controlled volume channels.
 
 This add-on is part of the **NETMMS Home Assistant Add-ons** collection.
 
@@ -8,150 +9,112 @@ This add-on is part of the **NETMMS Home Assistant Add-ons** collection.
 
 ## Overview
 
-This add-on provides:
+The Web Megaphone add-on exposes two HTTP endpoints (ports **8000** and **8001**) that act as audio “zones.”  
+Any device (phone, tablet, PC) can connect to either web interface and broadcast audio directly to your Home Assistant host speakers.
 
-- Local audio playback using `play` (SoX)
-- Optional **pipe mode**:
-  - Decodes audio to raw PCM using `sox`
-  - Sends it into a named pipe (FIFO), typically consumed by the **Snapserver Pipe** add-on
-- Volume control (per playback and default level)
-- Support for playing any audio file readable by SoX
-- Works through Home Assistant automations or scripts by writing commands to STDIN  
-  (Home Assistant service sends lines like `"file.mp3;60"`)
+Typical use cases include:
+
+- Broadcasting quick voice messages from a phone or laptop  
+- Replacing a traditional PA/public announcement system  
+- Triggering alerts or sirens from scripts  
+- Using with other add-ons such as **Local Audio Player** or **Snapserver Pipe** for distributed audio
 
 ---
 
 ## Features
 
-### Local ALSA Audio
-When `use_pipe: false`, audio plays directly on the Home Assistant host speakers:
-
-```
-play -q <file> --buffer 32768 -t alsa
-```
-
-### Pipe Mode for Snapserver
-When `use_pipe: true`, audio is streamed into a FIFO for multi-room audio via Snapserver Pipe:
-
-```
-sox <file> -t raw -b 16 -e signed -r 48000 -c 2 <pipe_path>
-```
-
-This enables Home Assistant to become a **synchronized audio source** for your Snapcast network.
+- Two independent audio channels (port 8000 and port 8001)
+- Each channel has its own configurable volume
+- Plays through Home Assistant’s local audio output
+- Browser-based interface—no app required
+- Works on all architectures supported by Home Assistant
+- Optional integration with Snapcast via the Local Audio Player add-on
 
 ---
 
 ## Configuration
 
-Add-on options:
+The add-on exposes the following options in *Settings → Add-ons → Web Megaphone → Configuration*:
 
 ```yaml
-folder: "/config/www"
-volume: 60
-use_pipe: false
-pipe: "/share/snapserver/stream"
+volume1: 40
+volume2: 80
 ```
 
-### `folder`
-The default folder from which audio files are played.
+### `volume1`
+Default playback volume (0–100%) for the **8000** interface.
 
-### `volume`
-System volume (0–100%) set before each playback.
+### `volume2`
+Default playback volume (0–100%) for the **8001** interface.
 
-### `use_pipe`
-Boolean  
-- `false` – play locally via ALSA  
-- `true` – output raw PCM audio to the FIFO defined in `pipe`
+---
 
-### `pipe`
-A path to a named pipe (FIFO).  
-Used only when `use_pipe: true`.
+## Ports
 
-Defaults to:
+| Port      | Purpose                         |
+|-----------|---------------------------------|
+| **8000**  | Web Megaphone channel 1         |
+| **8001**  | Web Megaphone channel 2         |
+
+Both ports serve an HTTP interface that clients can use to transmit or trigger audio.
+
+Example:
 
 ```
-/share/snapserver/stream
+http://homeassistant.local:8000
+http://homeassistant.local:8001
 ```
 
 ---
 
-## How Playback Works
+## Usage Examples
 
-Commands are read from STDIN in the format:
+### Broadcast your voice from a phone
+1. Join the same network as Home Assistant.  
+2. Open Safari/Chrome:  
+   ```
+   http://homeassistant.local:8000
+   ```  
+3. Use the page controls to start broadcasting through HA speakers.
 
-```
-<file>;<volume>
-```
+### Trigger a message using Home Assistant
+You can POST to the endpoint from an automation to trigger a sound or announcement.
 
-Examples:
-
-```
-/config/www/alert.mp3;70
-doorbell.wav;90
-```
-
-If volume is omitted:
-
-```
-alert.mp3
-```
-
-then the default volume is used (from `options.volume`).
-
----
-
-## Pipe Mode Example (with Snapserver Pipe)
+### Combine with Snapserver Pipe
+To distribute announcements through multi-room speakers:
 
 1. Install **Snapserver Pipe** add-on  
-2. It creates a FIFO at:  
-   `/share/snapserver/stream`
-3. Configure this add-on:
-
-```yaml
-use_pipe: true
-pipe: "/share/snapserver/stream"
-```
-
-4. Play audio:
-
-```
-"/config/www/alert.mp3;80"
-```
-
-Audio will now be played in sync across all Snapclients in your home.
+2. Install **Local Audio Player** add-on  
+3. Configure Local Audio Player to output audio to the Snapserver FIFO  
+4. Use Web Megaphone for live announcements → Snapserver distributes them everywhere
 
 ---
 
 ## Troubleshooting
 
-### No audio in local mode
-- Ensure the host’s ALSA device is available
-- Try SSHing into HAOS and playing a test tone:
-  ```
-  play -n synth sine 440
-  ```
+### No sound?
+- Confirm Home Assistant audio works (`play -n synth sine 440`)
+- Check host volume (amixer)
+- Ensure no other add-on is locking ALSA
 
-### Snapserver not receiving audio in pipe mode
-- Confirm the FIFO exists:
-  ```
-  ls -l /share/snapserver/stream
-  ```
-- Confirm Snapserver Pipe add-on uses `pipe:///share/snapserver/stream`
+### Web interface does not load?
+- Verify host networking is enabled (it is by default)
+- Confirm firewall settings if using HAOS behind a more restrictive router
 
-### “FIFO blocked / no reader”
-- Start Snapserver Pipe **first**, then play audio  
-  (FIFO waits for a reader before allowing writes)
+### Audio stutters?
+- Try lowering volume or reducing client CPU load  
+- Check Wi-Fi strength on the broadcasting device  
 
 ---
 
 ## License
 
-MIT License unless otherwise specified.
+MIT License unless otherwise stated.
 
 ---
 
 ## Credits
 
-- Snapcast by badaix
-- NETMMS Home Assistant Add-ons
-- Home Assistant community
+- NETMMS Home Assistant Add-ons  
+- Home Assistant community  
+- Contributors and testers  
