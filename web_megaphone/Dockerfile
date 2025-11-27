@@ -18,8 +18,9 @@ COPY run.sh pa.py play_msg.sh /
 COPY pa_sound.wav /
 COPY wm.cert.pem wm.key.pem /certs/
 
-# Create HTML folder for web UI (if needed)
+# Copies only the files, no way otherwise
 RUN mkdir /html
+COPY html /html
 
 # Fix permissions
 RUN chmod a+x /run.sh /pa.py /play_msg.sh
