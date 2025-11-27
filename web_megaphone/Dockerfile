@@ -16,7 +16,7 @@ RUN apk add --no-cache \
 # Copy scripts and assets
 COPY run.sh pa.py play_msg.sh /
 COPY pa_sound.wav /
-COPY wm.cert.pem wm.key.pem /ssl
+COPY wm.cert.pem wm.key.pem /certs/
 
 # Create HTML folder for web UI (if needed)
 RUN mkdir /html

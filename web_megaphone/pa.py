@@ -105,8 +105,8 @@ def init_server(flag, port):
     # HTTPS server using certs from /ssl
     context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
     context.load_cert_chain(
-        certfile="/ssl/wm.cert.pem",
-        keyfile="/ssl/wm.key.pem",
+        certfile="/certs/wm.cert.pem",
+        keyfile="/certs/wm.key.pem"
     )
     context.check_hostname = False
 
