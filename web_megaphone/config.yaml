@@ -1,5 +1,5 @@
 name: "Web Megaphone"
-version: "0.70"
+version: "0.71"
 slug: "web_megaphone"
 description: "Web PA System"
 url: "https://github.com/netmms/ha_netmms/tree/main/web_megaphone"
@@ -25,8 +25,8 @@ ports:
   8000/tcp: 8000
   8001/tcp: 8001
 
-#map:
-#  - share:rw
+map:
+  - share:rw
 
 options:
   volume1: 40
