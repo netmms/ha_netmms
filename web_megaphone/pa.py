@@ -1,16 +1,17 @@
 from http.server import HTTPServer, SimpleHTTPRequestHandler
-import ssl, cgi
-import os, sys, time
+import ssl
+import os
+import sys
 
 
 def get_ip_address():
-    # do not make any assumptions about the order of the output!
+    # Do not assume order of hostname -i output
     ip_list = os.popen("hostname -i").read().split()
     for ip in ip_list:
         if ":" in ip:
             continue
-        else:
-            return ip.strip()
+        return ip.strip()
+    return "0.0.0.0"
 
 
 def read_file(fname):
@@ -21,14 +22,14 @@ def read_file(fname):
 
 
 def content_type(path):
-    ext = os.path.splitext(path)[1][1:]
+    ext = os.path.splitext(path)[1][1:].lower()
     if ext == "css":
         type_ = "text/css"
     elif ext == "ico":
         type_ = "image/x-icon"
     elif ext == "png":
         type_ = "image/png"
-    elif ext == "jpg":
+    elif ext == "jpg" or ext == "jpeg":
         type_ = "image/jpeg"
     elif ext == "gif":
         type_ = "image/gif"
@@ -45,8 +46,8 @@ def content_type(path):
     return type_
 
 
-# empty string = all interfaces (0.0.0.0)
-host_name = ""
+# Bind on all interfaces
+host_name = ""  # 0.0.0.0
 
 
 class MyServer(SimpleHTTPRequestHandler):
@@ -66,54 +67,93 @@ class MyServer(SimpleHTTPRequestHandler):
         if path == "/":
             path = "/index.html"
 
-        # serve from /html directory inside the container
+        # Serve from /html directory inside the container
         path = "html" + path
 
         html = read_file(path)
         if not html:
-            self.send_error(404)
+            self.send_error(404, "Not Found")
         else:
             self.do_HEAD(content_type(path))
             self.wfile.write(html)
 
     def do_POST(self):
-        form = cgi.FieldStorage(
-            fp=self.rfile,
-            headers=self.headers,
-            environ={
-                "REQUEST_METHOD": "POST",
-                "CONTENT_TYPE": self.headers["Content-Type"],
-            },
-        )
+        # Read the content length from headers
+        try:
+            length = int(self.headers.get("Content-Length", "0"))
+        except ValueError:
+            length = 0
 
-        # save incoming audio data to /msg.wav
-        with open("/msg.wav", "wb") as f:
-            data = form.getfirst("audio_data")
-            # FieldStorage may return str or bytes; normalise to bytes
-            if isinstance(data, str):
-                data = data.encode("latin1")
-            f.write(data)
+        if length <= 0:
+            self.send_error(400, "Bad Request: missing or invalid Content-Length")
+            return
 
-        # play the recorded message
+        body = self.rfile.read(length)
+
+        content_type_header = self.headers.get("Content-Type", "")
+        if "multipart/form-data" not in content_type_header or "boundary=" not in content_type_header:
+            self.send_error(400, "Bad Request: expected multipart/form-data")
+            return
+
+        boundary = content_type_header.split("boundary=", 1)[1].strip()
+        if boundary.startswith('"') and boundary.endswith('"'):
+            boundary = boundary[1:-1]
+        boundary = boundary.encode()
+
+        # Split by boundary
+        parts = body.split(b"--" + boundary)
+        audio_data = None
+
+        for part in parts:
+            if b"Content-Disposition" in part and b'name="audio_data"' in part:
+                # Separate headers from body on first double CRLF
+                if b"\r\n\r\n" in part:
+                    _, data = part.split(b"\r\n\r\n", 1)
+                    # Strip trailing boundary CRLF/final markers
+                    audio_data = data.rstrip(b"\r\n")
+                    break
+
+        if audio_data is None:
+            self.send_error(400, "Bad Request: audio_data field not found")
+            return
+
+        # Save the received audio to /msg.wav
+        try:
+            with open("/msg.wav", "wb") as f:
+                f.write(audio_data)
+        except Exception as e:
+            print(f"Error writing /msg.wav: {e}", file=sys.stderr)
+            self.send_error(500, "Internal Server Error: cannot write file")
+            return
+
+        # Trigger playback script (blocking, simple)
         os.system("/play_msg.sh")
 
-        # redirect back to web UI
+        # Redirect back to main page
         self._redirect("/")
 
 
 def init_server(flag, port):
     # HTTPS server using certs from /ssl
+    certfile = "/ssl/wm.cert.pem"
+    keyfile = "/ssl/wm.key.pem"
+
+    if not os.path.isfile(certfile) or not os.path.isfile(keyfile):
+        print(
+            f"ERROR: Certificate or key not found at {certfile} / {keyfile}",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
     context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-    context.load_cert_chain(
-        certfile="/certs/wm.cert.pem",
-        keyfile="/certs/wm.key.pem"
-    )
+    context.load_cert_chain(certfile=certfile, keyfile=keyfile)
     context.check_hostname = False
 
     with HTTPServer((host_name, port), MyServer) as httpd:
         httpd.socket = context.wrap_socket(httpd.socket, server_side=True)
+        ip = get_ip_address()
         print(
-            ">>> Server %s started on port %s (https)" % (host_name or "0.0.0.0", port),
+            f">>> Server {ip} started on port {port} (https, bound to 0.0.0.0)",
             file=sys.stderr,
         )
         httpd.serve_forever()
@@ -121,5 +161,5 @@ def init_server(flag, port):
 
 
 if __name__ == "__main__":
-    # start HTTPS server on port 8001
+    # Start HTTPS server on port 8001
     init_server(2, 8001)
