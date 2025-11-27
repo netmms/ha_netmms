@@ -134,10 +134,10 @@ class MyServer(SimpleHTTPRequestHandler):
 
 
 def init_server(flag, port):
-    # HTTPS server using certs from /ssl
-        certfile="/certs/wm.cert.pem",
-        keyfile="/certs/wm.key.pem"
+    certfile = "/ssl/wm.cert.pem"
+    keyfile  = "/ssl/wm.key.pem"
 
+    # Certificate existence check (MUST be indented under the function)
     if not os.path.isfile(certfile) or not os.path.isfile(keyfile):
         print(
             f"ERROR: Certificate or key not found at {certfile} / {keyfile}",
@@ -153,12 +153,11 @@ def init_server(flag, port):
         httpd.socket = context.wrap_socket(httpd.socket, server_side=True)
         ip = get_ip_address()
         print(
-            f">>> Server {ip} started on port {port} (https, bound to 0.0.0.0)",
+            f">>> Server {ip} started on port {port} (https)",
             file=sys.stderr,
         )
         httpd.serve_forever()
         httpd.server_close()
-
 
 if __name__ == "__main__":
     # Start HTTPS server on port 8001
