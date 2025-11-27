@@ -1,0 +1,3 @@
+Ensure all text (slug, etc.) is double-quoted
+Mark all .sh files as a+x
+Change the bash executable path at the top of run.sh and other .sh files
