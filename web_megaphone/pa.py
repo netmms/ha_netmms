@@ -27,7 +27,7 @@ def content_type(path):
         type_ = "text/css"
     elif ext == "ico":
         type_ = "image/x-icon"
-    elif ext == "png":
+    elif ext == "png" or ext == "apng":
         type_ = "image/png"
     elif ext == "jpg" or ext == "jpeg":
         type_ = "image/jpeg"
@@ -67,7 +67,7 @@ class MyServer(SimpleHTTPRequestHandler):
         if path == "/":
             path = "/index.html"
 
-        # Serve from /html directory inside container
+        # Serve from /html directory inside the add-on container
         full_path = "html" + path
 
         html = read_file(full_path)
@@ -78,7 +78,6 @@ class MyServer(SimpleHTTPRequestHandler):
             self.wfile.write(html)
 
     def do_POST(self):
-        # Read Content-Length
         try:
             length = int(self.headers.get("Content-Length", "0"))
         except ValueError:
@@ -90,19 +89,17 @@ class MyServer(SimpleHTTPRequestHandler):
 
         body = self.rfile.read(length)
 
-        # Expect multipart
         content_type_header = self.headers.get("Content-Type", "")
         if "multipart/form-data" not in content_type_header or "boundary=" not in content_type_header:
             self.send_error(400, "Bad Request: expected multipart/form-data")
             return
 
-        # Extract boundary
+        # Extract boundary string
         boundary = content_type_header.split("boundary=", 1)[1].strip()
         if boundary.startswith('"') and boundary.endswith('"'):
             boundary = boundary[1:-1]
         boundary = boundary.encode()
 
-        # Parse multipart parts
         parts = body.split(b"--" + boundary)
         audio_data = None
 
@@ -117,7 +114,7 @@ class MyServer(SimpleHTTPRequestHandler):
             self.send_error(400, "Bad Request: audio_data field not found")
             return
 
-        # Save WAV
+        # Write /msg.wav
         try:
             with open("/msg.wav", "wb") as f:
                 f.write(audio_data)
@@ -126,18 +123,16 @@ class MyServer(SimpleHTTPRequestHandler):
             self.send_error(500, "Internal Server Error: cannot write file")
             return
 
-        # Trigger playback
         os.system("/play_msg.sh")
 
-        # Redirect back to page
         self._redirect("/")
 
 
 def init_server(flag, port):
-    certfile = "/ssl/wm.cert.pem"
-    keyfile = "/ssl/wm.key.pem"
+    certfile = "/certs/wm.cert.pem"
+    keyfile = "/certs/wm.key.pem"
 
-    # Certificate check
+    # Validate existence of cert files
     if not os.path.isfile(certfile) or not os.path.isfile(keyfile):
         print(
             f"ERROR: Certificate or key not found at {certfile} / {keyfile}",
@@ -153,7 +148,7 @@ def init_server(flag, port):
         httpd.socket = context.wrap_socket(httpd.socket, server_side=True)
         ip = get_ip_address()
         print(
-            f">>> Server {ip} started on port {port} (https)",
+            f">>> Server {ip} started on port {port} (https, certificates in /certs)",
             file=sys.stderr,
         )
         httpd.serve_forever()
@@ -162,4 +157,3 @@ def init_server(flag, port):
 
 if __name__ == "__main__":
     init_server(2, 8001)
-
