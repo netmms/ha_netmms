@@ -12,6 +12,8 @@ startup: services
 boot: auto
 stage: stable
 host_network: true
+logo: https://raw.githubusercontent.com/netmms/ha_netmms/main/snapserver_pipe/logo.png
+icon: https://raw.githubusercontent.com/netmms/ha_netmms/main/snapserver_pipe/icon.png
 # If you prefer not to use host networking, comment host_network and uncomment ports below.
 #ports:
 #  1704/tcp: 1704  # Snapcast stream
