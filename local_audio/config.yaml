@@ -26,7 +26,12 @@ map:
 options:
   folder: "/config/www"
   volume: 60
+  use_pipe: false
+  pipe: "/share/snapserver/stream"
 
 schema:
   folder: str
   volume: int
+  use_pipe: bool
+  pipe: str
+  
