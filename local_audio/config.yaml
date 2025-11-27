@@ -1,0 +1,32 @@
+name: "Local Audio Player"
+version: "1.39"
+slug: "local_audio"
+description: "Play local audio files on the Home Assistant host. Can be used with Snapserver Pipe for distributed audio."
+url: "https://github.com/netmms/ha_netmms/tree/main/local_audio"
+
+# Icons shown in the Home Assistant add-on store
+logo: "https://raw.githubusercontent.com/netmms/ha_netmms/main/local_audio/logo.png"
+icon: "https://raw.githubusercontent.com/netmms/ha_netmms/main/local_audio/icon.png"
+
+init: false
+arch:
+  - aarch64
+  - amd64
+  - armhf
+  - armv7
+  - i386
+
+stdin: true
+audio: true
+host_network: true
+
+map:
+  - share:rw
+
+options:
+  folder: "/config/www"
+  volume: 60
+
+schema:
+  folder: str
+  volume: int
