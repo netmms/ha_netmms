@@ -1,5 +1,5 @@
 name: "Local Audio Player"
-version: "1.39"
+version: "1.40"
 slug: "local_audio"
 description: "Play local audio files on the Home Assistant host. Can be used with Snapserver Pipe for distributed audio."
 url: "https://github.com/netmms/ha_netmms/tree/main/local_audio"
