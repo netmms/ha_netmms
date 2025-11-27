@@ -22,6 +22,7 @@ host_network: true
 
 map:
   - share:rw
+  - config:rw
 
 options:
   folder: "/config/www"
