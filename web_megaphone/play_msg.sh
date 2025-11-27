@@ -1,30 +1,42 @@
 #!/usr/bin/with-contenv bashio
 
-# TMPFILE1=/tmp/adhan.lock
-# TMPFILE2=/tmp/pa.lock
-
-# if [ -f $TMPFILE1 ]; then
-	# read pid < $TMPFILE1
-	# kill -TERM -$pid
-	# rm -f $TMPFILE1
-# fi
-
-# echo $$ > $TMPFILE2
-
 DEF_VOL1=$(bashio::config 'volume1')
 DEF_VOL2=$(bashio::config 'volume2')
 
-bashio::log.info "Playing message at vol1=${DEF_VOL1} vol2=${DEF_VOL2}..."
-# bashio::log.info "Volume #1 = ${DEF_VOL1}"
-# bashio::log.info "Volume #2 = ${DEF_VOL2}"
+USE_PIPE="${USE_PIPE}"
+PIPE_PATH="${PIPE_PATH}"
 
-#amixer -q sset Master ${DEF_VOL1}% && aplay -q pa_sound.wav && \
-#amixer -q sset Master ${DEF_VOL2}% && aplay msg.wav
+bashio::log.info "Playing message: vol1=${DEF_VOL1} vol2=${DEF_VOL2} pipe=${USE_PIPE}"
 
-#amixer -q sset Master ${DEF_VOL1}% && aplay -q pa_sound.wav | cat > /share/snapserver/stream && \
-#amixer -q sset Master ${DEF_VOL2}% && aplay msg.wav | cat > /share/snapserver/stream
+if [[ "${USE_PIPE}" == "true" ]]; then
+    bashio::log.info "Output = PIPE -> ${PIPE_PATH}"
 
-amixer -q sset Master ${DEF_VOL1}% && sox pa_sound.wav -t raw -b 16 -e signed -r 48000 -c 2 /share/snapserver/stream && \
-amixer -q sset Master ${DEF_VOL2}% && sox msg.wav -t raw -b 16 -e signed -r 48000 -c 2 /share/snapserver/stream
+    # Safety: ensure the pipe exists
+    if [[ ! -p "${PIPE_PATH}" ]]; then
+        bashio::log.error "PIPE missing: ${PIPE_PATH}"
+        exit 1
+    fi
 
-# rm -f $TMPFILE2
+    # First tone (pa_sound.wav)
+    amixer -q sset Master "${DEF_VOL1}%" >/dev/null 2>&1
+    if ! sox pa_sound.wav -t raw -b 16 -e signed -r 48000 -c 2 "${PIPE_PATH}" 2>/dev/null; then
+        bashio::log.error "Failed to send pa_sound.wav to pipe."
+    fi
+
+    # Message (msg.wav)
+    amixer -q sset Master "${DEF_VOL2}%" >/dev/null 2>&1
+    if ! sox msg.wav -t raw -b 16 -e signed -r 48000 -c 2 "${PIPE_PATH}" 2>/dev/null; then
+        bashio::log.error "Failed to send msg.wav to pipe."
+    fi
+
+else
+    bashio::log.info "Output = LOCAL ALSA"
+
+    # First tone (pa_sound.wav)
+    amixer -q sset Master "${DEF_VOL1}%" >/dev/null 2>&1
+    aplay -q pa_sound.wav
+
+    # Message (msg.wav)
+    amixer -q sset Master "${DEF_VOL2}%" >/dev/null 2>&1
+    aplay -q msg.wav
+fi

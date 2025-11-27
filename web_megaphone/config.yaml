@@ -22,7 +22,6 @@ audio: true
 host_network: true
 
 ports:
-  8000/tcp: 8000
   8001/tcp: 8001
 
 map:
@@ -32,7 +31,12 @@ map:
 options:
   volume1: 40
   volume2: 80
+  use_pipe: false
+  pipe: "/share/snapserver/stream"
 
 schema:
   volume1: int
   volume2: int
+  use_pipe: bool
+  pipe: str
+  
