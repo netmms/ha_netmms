@@ -1,7 +1,13 @@
 # Web Megaphone Add-on for Home Assistant
 
-The **Web Megaphone** add-on provides a flexible, browser-accessible public-address (PA) audio system that runs directly on your Home Assistant host.  
-It allows any device on your network to open a simple web page and broadcast live audio or trigger audio playback through two independently controlled volume channels.
+The **Web Megaphone** add-on provides an HTTPS-based public-address (PA) system for Home Assistant — similar to a real **airport PA**:
+
+1. You record a short message from your browser or web UI.
+2. The add-on stores it as `msg.wav`.
+3. It plays an alert chime (`pa_sound.wav`).
+4. It plays your recorded message through either:
+   - the Home Assistant host speakers (local ALSA), or
+   - your whole-home Snapserver system (via pipe mode).
 
 This add-on is part of the **NETMMS Home Assistant Add-ons** collection.
 
@@ -9,112 +15,157 @@ This add-on is part of the **NETMMS Home Assistant Add-ons** collection.
 
 ## Overview
 
-The Web Megaphone add-on exposes two HTTP endpoints (ports **8000** and **8001**) that act as audio “zones.”  
-Any device (phone, tablet, PC) can connect to either web interface and broadcast audio directly to your Home Assistant host speakers.
+The Web Megaphone add-on exposes **one HTTPS endpoint** on **port 8001**.
+Any device on your network (phone, tablet, PC) can:
 
-Typical use cases include:
+- Open the web interface
+- Record a short message
+- Trigger the PA announcement
 
-- Broadcasting quick voice messages from a phone or laptop  
-- Replacing a traditional PA/public announcement system  
-- Triggering alerts or sirens from scripts  
-- Using with other add-ons such as **Local Audio Player** or **Snapserver Pipe** for distributed audio
+The add-on then:
+
+1. Plays an alert tone (`pa_sound.wav`)
+2. Plays the recorded message (`msg.wav`)
+3. At volumes you control (`volume1` and `volume2`)
+4. Either locally or via Snapserver Pipe for distributed audio
 
 ---
 
 ## Features
 
-- Two independent audio channels (port 8000 and port 8001)
-- Each channel has its own configurable volume
-- Plays through Home Assistant’s local audio output
-- Browser-based interface—no app required
-- Works on all architectures supported by Home Assistant
-- Optional integration with Snapcast via the Local Audio Player add-on
+- Airport-style PA workflow: record → chime → announce
+- HTTPS-enabled server with your own certificate
+- Browser-based UI (no client installation)
+- Fully local – no cloud voice processing
+- Optional Snapserver Pipe mode for whole-home broadcasting
+- Adjustable chime and message volumes  
+- Works on all Home Assistant CPU architectures
 
 ---
 
 ## Configuration
 
-The add-on exposes the following options in *Settings → Add-ons → Web Megaphone → Configuration*:
+### Options
 
 ```yaml
 volume1: 40
 volume2: 80
+use_pipe: false
+pipe: "/share/snapserver/stream"
 ```
 
-### `volume1`
-Default playback volume (0–100%) for the **8000** interface.
+| Option | Purpose |
+|--------|---------|
+| `volume1` | Volume (0–100) for **alert tone** |
+| `volume2` | Volume (0–100) for **recorded message** |
+| `use_pipe` | `false` = play locally, `true` = stream to Snapserver Pipe |
+| `pipe` | Named pipe (FIFO) path for Snapserver |
 
-### `volume2`
-Default playback volume (0–100%) for the **8001** interface.
+### Required mapping
+
+```yaml
+map:
+  - share:rw
+  - config:rw
+  - certs:rw
+```
+
+`share` is required for Snapserver Pipe.  
+`certs` is required for HTTPS certificates.
+
+---
+
+## Playback Logic
+
+### Local playback (`use_pipe: false`)
+
+```
+amixer → set volume1
+aplay pa_sound.wav
+amixer → set volume2
+aplay msg.wav
+```
+
+### Pipe playback (`use_pipe: true`)
+
+```
+sox pa_sound.wav → raw PCM → pipe
+sox msg.wav → raw PCM → pipe
+```
+
+This streams audio into Snapserver for multiroom announcements.
 
 ---
 
 ## Ports
 
-| Port      | Purpose                         |
-|-----------|---------------------------------|
-| **8000**  | Web Megaphone channel 1         |
-| **8001**  | Web Megaphone channel 2         |
+| Port | Purpose |
+|------|---------|
+| **8001/tcp** | HTTPS PA interface |
 
-Both ports serve an HTTP interface that clients can use to transmit or trigger audio.
-
-Example:
-
-```
-http://homeassistant.local:8000
-http://homeassistant.local:8001
-```
+There is **no port 8000**.
 
 ---
 
-## Usage Examples
+## Using the Web UI
 
-### Broadcast your voice from a phone
-1. Join the same network as Home Assistant.  
-2. Open Safari/Chrome:  
+1. Open:  
    ```
-   http://homeassistant.local:8000
-   ```  
-3. Use the page controls to start broadcasting through HA speakers.
+   https://<homeassistant>:8001/
+   ```
+2. Record your message.
+3. Submit it.
+4. Hear the chime and announcement through your selected audio mode.
 
-### Trigger a message using Home Assistant
-You can POST to the endpoint from an automation to trigger a sound or announcement.
+---
 
-### Combine with Snapserver Pipe
-To distribute announcements through multi-room speakers:
+## Snapserver Integration
 
-1. Install **Snapserver Pipe** add-on  
-2. Install **Local Audio Player** add-on  
-3. Configure Local Audio Player to output audio to the Snapserver FIFO  
-4. Use Web Megaphone for live announcements → Snapserver distributes them everywhere
+Enable this if you want your PA messages to play over all Snapclients.
+
+1. Install **Snapserver Pipe** add-on.
+2. Ensure FIFO exists:  
+   ```
+   /share/snapserver/stream
+   ```
+3. Configure Web Megaphone:
+
+```yaml
+use_pipe: true
+pipe: "/share/snapserver/stream"
+```
+
+4. Play announcements through Snapcast automatically.
 
 ---
 
 ## Troubleshooting
 
-### No sound?
-- Confirm Home Assistant audio works (`play -n synth sine 440`)
-- Check host volume (amixer)
-- Ensure no other add-on is locking ALSA
+### “Pipe missing”
+- Ensure Snapserver Pipe is running  
+- Make sure `/share/snapserver/stream` exists  
+- Confirm `share:rw` is mapped
 
-### Web interface does not load?
-- Verify host networking is enabled (it is by default)
-- Confirm firewall settings if using HAOS behind a more restrictive router
+### “404 Not Found”
+Check that your UI assets exist in:
+```
+html/index.html
+```
 
-### Audio stutters?
-- Try lowering volume or reducing client CPU load  
-- Check Wi-Fi strength on the broadcasting device  
+### HTTPS warnings
+Self-signed certificates are normal for internal LAN.
 
 ---
 
 ## License
 
-MIT License unless otherwise stated.
+MIT License unless specified otherwise.
 
 ---
 
 ## Credits
 
-- NETMMS Home Assistant Add-ons  
+- Snapcast by badaix  
 - Home Assistant community  
-- Contributors and testers  
+- NETMMS PA System contributors  
+- Inspired by real-world airport PA announcements
