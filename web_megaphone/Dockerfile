@@ -1,27 +1,27 @@
-ARG BUILD_FROM
-FROM $BUILD_FROM
+# Set base image from Home Assistant build system
+ARG BUILD_FROM=ghcr.io/home-assistant/amd64-base:latest
+FROM ${BUILD_FROM}
 
-# Add env
-ENV LANG C.UTF-8
+# Environment settings
+ENV LANG=C.UTF-8
 
-# Setup base, install sox package
-RUN apk add --no-cache alsa-plugins-pulse alsa-utils
-RUN apk add --no-cache jq sox 
-RUN apk add --no-cache python3
+# Install dependencies
+RUN apk add --no-cache \
+    alsa-plugins-pulse \
+    alsa-utils \
+    jq \
+    sox \
+    python3
 
-# Python 3 HTTP Server serves the current working dir
-# So let's set it to our add-on persistent data directory.
-# WORKDIR /data
-
-# Copy data
+# Copy scripts and assets
 COPY run.sh pa.py play_msg.sh /
 COPY pa_sound.wav /
-#COPY pzpray.local.key.pem pzpray.local.cert.pem /
-# Copies only the files, no way otherwisd
+
+# Create HTML folder for web UI (if needed)
 RUN mkdir /html
-COPY html /html
-# COPY run.sh /
 
-RUN chmod a+x /run.sh /play_msg.sh
+# Fix permissions
+RUN chmod a+x /run.sh /pa.py /play_msg.sh
 
+# Start script
 CMD [ "/run.sh" ]
