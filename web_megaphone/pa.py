@@ -135,8 +135,8 @@ class MyServer(SimpleHTTPRequestHandler):
 
 def init_server(flag, port):
     # HTTPS server using certs from /ssl
-    certfile = "/ssl/wm.cert.pem"
-    keyfile = "/ssl/wm.key.pem"
+        certfile="/certs/wm.cert.pem",
+        keyfile="/certs/wm.key.pem"
 
     if not os.path.isfile(certfile) or not os.path.isfile(keyfile):
         print(
