@@ -81,7 +81,7 @@ li {
   margin-bottom: 1rem;
 }
 
-#formats, #timer, #counter {
+#formats, #version, #counter {
  margin-top: 0.25rem;
  margin-left: 0.25rem;
  font-size: 70%;

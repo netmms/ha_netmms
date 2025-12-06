@@ -18,18 +18,18 @@ COPY run.sh pa.py play_msg.sh /
 COPY pa_sound.wav /
 COPY wm.cert.pem wm.key.pem /certs/
 
-# Copies only the files, no way otherwise
-RUN mkdir /html
-COPY html /html
+# HTML assets
+RUN mkdir -p /html
+COPY html/ /html/
 
-# Copy config.yaml so we can extract the version
+# Copy config.yaml so we can extract the version at build time
 COPY config.yaml /build_config.yaml
 
-# Generate version.js from config.yaml
-RUN ADDON_VERSION=$(grep '^version:' /build_config.yaml | head -n1 | awk '{print $2}' | tr -d '"') \
+# Generate /html/version.js from the version field in config.yaml
+RUN ADDON_VERSION=$(grep -m1 'version:' /build_config.yaml | awk '{print $2}' | tr -d '"\r' ) \
     && echo "window.WM_VERSION = \"${ADDON_VERSION}\";" > /html/version.js \
     && rm /build_config.yaml
-    
+
 # Fix permissions
 RUN chmod a+x /run.sh /pa.py /play_msg.sh
 
