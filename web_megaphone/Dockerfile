@@ -22,6 +22,14 @@ COPY wm.cert.pem wm.key.pem /certs/
 RUN mkdir /html
 COPY html /html
 
+# Copy config.yaml so we can extract the version
+COPY config.yaml /build_config.yaml
+
+# Generate version.js from config.yaml
+RUN ADDON_VERSION=$(grep '^version:' /build_config.yaml | head -n1 | awk '{print $2}' | tr -d '"') \
+    && echo "window.WM_VERSION = \"${ADDON_VERSION}\";" > /html/version.js \
+    && rm /build_config.yaml
+    
 # Fix permissions
 RUN chmod a+x /run.sh /pa.py /play_msg.sh
 

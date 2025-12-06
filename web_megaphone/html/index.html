@@ -10,18 +10,33 @@
     <link rel="stylesheet" type="text/css" href="style.css">
   </head>
   <body>
-    <h1 align="center">PA Microphone</h1>
+  <h1 align="center">PA Microphone</h1>
  
-    <div id="controls">
+  <div id="controls">
 	<table width="100%"><tr>
 	<td width="75%"><button id="recordButton" width="100%">Record</button></td>
 	<td><div id="status" align="center">Waiting...</div></td>
 	</tr></table>
-    </div>
-    <div id="formats">Format: start recording to see sample rate</div><br>
-    <!-- <div id="timer">Timer:</div><div id="counter"></div> -->
-  	<script src="js/recorder.js"></script>
-  	<script src="js/app.js"></script> 
+  </div>
+  <div id="formats">Format: start recording to see sample rate</div><br>
+  <div id="version" style="text-align:center; font-size: 0.8em; color: #777;"></div>
+  <!-- <div id="timer">Timer:</div><div id="counter"></div> -->
+  <script src="js/recorder.js"></script>
+  <script src="js/app.js"></script> 
+
+  <script src="version.js"></script>
+  <script>
+    // If version is available from version.js, show it
+    (function () {
+      var el = document.getElementById('version');
+      if (!el) return;
+      if (window.WM_VERSION) {
+        el.textContent = 'Web Megaphone version ' + window.WM_VERSION;
+      } else {
+        el.textContent = 'Web Megaphone (dev)';
+      }
+    })();
+  </script>
     
   </body>
 </html>
