@@ -1,8 +1,8 @@
 //webkitURL is deprecated but nevertheless
 URL = window.URL || window.webkitURL;
 
-var gumStream; 					//stream from getUserMedia()
-var rec; 								//Recorder.js object
+var gumStream; 						//stream from getUserMedia()
+var rec; 							//Recorder.js object
 var input; 							//MediaStreamAudioSourceNode we'll be recording
 var isRecording = false;
 
@@ -11,6 +11,15 @@ var AudioContext = window.AudioContext || window.webkitAudioContext;
 var audioContext //audio context to help us record
 
 var recordButton = document.getElementById("recordButton");
+
+var recDelay;
+
+//if (navigator.userAgent.indexOf("Firefox") != -1) {
+//	recDelay = 5000;
+//}
+//else {
+//	recDelay = 1000;
+//}
 
 //add events to those 2 buttons
 recordButton.addEventListener("click", toggleRecording);
@@ -34,11 +43,37 @@ function delayedStartRec() {
 		startRecording();
 }
 
+var timeWent;
+var myTimer;
+
+function incTimer() {
+	if(timeWent >= 10) {
+		clearInterval(myTimer);
+	}
+	document.getElementById("counter").innerHTML = timeWent;
+	timeWent += 1;
+}
+	
 function toggleRecording() {
 	if (isRecording) {
 		stopRecording();
 	}
 	else {
+		var timeWent = 1;
+		var myTimer = setInterval(function(){
+		  if(timeWent >= 10){
+		    clearInterval(myTimer);
+//    		timeWent = "";
+		  }
+		  document.getElementById("counter").innerHTML = timeWent;
+		  timeWent += 1;
+		}, 1000);		
+
+		// this block was added since FireFox chops off the neginning of the recording for some reason
+//		recordButton.innerHTML = "Wait";
+//		recordButton.style.backgroundColor = "#ff8c00";
+//		document.getElementById("status").innerHTML="Preparing...";		
+//		setTimeout(delayedStartRec, recDelay); //delay is in milliseconds 
 		startRecording();
 	}
 }

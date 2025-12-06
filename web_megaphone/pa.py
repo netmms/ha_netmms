@@ -57,10 +57,20 @@ class MyServer(SimpleHTTPRequestHandler):
         self.end_headers()
 
     def _redirect(self, path):
-        self.send_response(303)
-        self.send_header("Content-type", "text/html")
-        self.send_header("Location", path)
-        self.end_headers()
+        try:
+            self.send_response(303)
+            self.send_header("Content-type", "text/html")
+            self.send_header("Location", path)
+            self.end_headers()
+        except (ConnectionResetError, BrokenPipeError):
+            # Client disconnected before we finished sending headers; ignore.
+            print("Client disconnected during redirect", file=sys.stderr)
+
+#    def _redirect(self, path):
+#        self.send_response(303)
+#        self.send_header("Content-type", "text/html")
+#        self.send_header("Location", path)
+#        self.end_headers()
 
     def do_GET(self):
         path = self.path
@@ -71,11 +81,20 @@ class MyServer(SimpleHTTPRequestHandler):
         full_path = "html" + path
 
         html = read_file(full_path)
+#        if not html:
+#            self.send_error(404, "Not Found")
+#        else:
+#            self.do_HEAD(content_type(full_path))
+#            self.wfile.write(html)
+
         if not html:
             self.send_error(404, "Not Found")
         else:
             self.do_HEAD(content_type(full_path))
-            self.wfile.write(html)
+            try:
+                self.wfile.write(html)
+            except (ConnectionResetError, BrokenPipeError):
+                print("Client disconnected while sending page", file=sys.stderr)
 
     def do_POST(self):
         try:
