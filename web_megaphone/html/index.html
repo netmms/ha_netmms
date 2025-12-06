@@ -19,7 +19,7 @@
 	</tr></table>
   </div>
   <div id="formats">Format: start recording to see sample rate</div><br>
-  <div id="version" style="text-align:center; font-size: 0.8em; color: #777;"></div>
+  <div id="version"</div>
   <!-- <div id="timer">Timer:</div><div id="counter"></div> -->
   <script src="js/recorder.js"></script>
   <script src="js/app.js"></script> 
@@ -31,9 +31,9 @@
       var el = document.getElementById('version');
       if (!el) return;
       if (window.WM_VERSION) {
-        el.textContent = 'Web Megaphone version ' + window.WM_VERSION;
+        el.textContent = 'version ' + window.WM_VERSION;
       } else {
-        el.textContent = 'Web Megaphone (dev)';
+        el.textContent = 'version unkown';
       }
     })();
   </script>

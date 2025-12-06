@@ -27,7 +27,7 @@ COPY config.yaml /build_config.yaml
 
 # Generate version.js from config.yaml
 RUN ADDON_VERSION=$(grep '^version:' /build_config.yaml | head -n1 | awk '{print $2}' | tr -d '"') \
-    && echo "window.WM_VERSION = \"${ADDON_VERSION}\";" > /html/version.js \
+    && echo "window.WM_VERSION = \"${ADDON_VERSION}\";" > /html/js/version.js \
     && rm /build_config.yaml
     
 # Fix permissions
