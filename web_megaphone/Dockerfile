@@ -26,7 +26,7 @@ COPY html/ /html/
 COPY config.yaml /build_config.yaml
 
 # Generate /html/version.js from the version field in config.yaml
-RUN ADDON_VERSION=$(grep -m1 'version:' /build_config.yaml | awk '{print $2}' | tr -d '"\r' ) \
+RUN ADDON_VERSION=$(grep -m1 'version:' /build_config.yaml | awk '{print $2}' | tr -d '"\r\n[:space:]' ) \
     && echo "window.WM_VERSION = \"${ADDON_VERSION}\";" > /html/version.js \
     && rm /build_config.yaml
 
