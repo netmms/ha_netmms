@@ -72,11 +72,11 @@ Your `config.yaml` must include:
 map:
   - share:rw
   - config:rw
-  - certs:rw
+  - ssl
 ```
 
-- `/share` → needed for Snapserver Pipe  
-- `/certs` → where HTTPS certificates (`wm.cert.pem` / `wm.key.pem`) reside  
+- `/share` → needed for Snapserver Pipe, and keeps the last message (`/share/web_megaphone/last_msg.wav`)
+- `/ssl` (read-only) → the trusted certificate in `/ssl/web_megaphone/` (see **Certificates**)
 
 ---
 
@@ -133,17 +133,53 @@ Chime and message go out as one stream. Your PA message is heard in **every room
 
 ---
 
-# Creating Certificates
+# Certificates (no browser warning)
 
-Store certificates in `/ssl` (mapped as `/certs`).  
-To generate a 10-year certificate:
+Browsers give a page the microphone only over HTTPS, so the add-on cannot use
+plain HTTP. To get rid of the certificate warning, the add-on uses a certificate
+signed by your own small home CA, which you install once on each device.
 
-```bash
-cd /ssl
-openssl req -x509 -nodes -newkey rsa:2048   -keyout wm.key.pem   -out wm.cert.pem   -days 3650   -subj "/CN=web-megaphone"
-```
+1. On your computer, in the repository folder:
 
-Copy them into your add-on or use `/certs` mapping.
+   ```bash
+   bash web_megaphone/tools/make_certs.sh
+   ```
+
+   This makes `_certs/` (ignored by git) with:
+
+   | File | What to do with it |
+   |------|--------------------|
+   | `ca.key.pem` | Keep it there. Never copy it anywhere, never commit it |
+   | `ca.crt` | Install on each phone / computer (step 3), and copy to Home Assistant |
+   | `wm.cert.pem`, `wm.key.pem` | Copy to Home Assistant |
+
+   The certificate is for `192.168.100.4`, `homeassistant.local` and `homeassistant`
+   (change with `HOST_IP=... NAMES="..." bash web_megaphone/tools/make_certs.sh`).
+   The CA can only vouch for 192.168.100.x and `.local` names, so even if its key
+   leaked it could not fake any other site.
+
+2. Copy `wm.cert.pem`, `wm.key.pem` and `ca.crt` to Home Assistant's **`/ssl/web_megaphone/`**
+   folder (Samba share `ssl`, or the File editor / Studio Code Server add-on),
+   then restart the add-on. Its log shows `certificate /ssl/web_megaphone/wm.cert.pem, valid until ...`.
+
+3. Install `ca.crt` once on each device. It can be downloaded from the page itself:
+   `https://192.168.100.4:8001/ca.crt` (the "certificate" link at the bottom).
+   - **Mac**: double-click `ca.crt` → Keychain Access → open "Home PA CA" → Trust → *Always Trust*.
+   - **Android**: Settings → Security → More security settings → Install from storage →
+     *CA certificate* → pick `ca.crt`.
+   - **iPhone / iPad**: open the link in Safari → *Allow* → Settings → *Profile Downloaded* →
+     Install. Then Settings → General → About → **Certificate Trust Settings** →
+     turn on "Home PA CA".
+
+4. Open the page as `https://192.168.100.4:8001/` (or `https://homeassistant.local:8001/`).
+   The **Open Web UI** button on the add-on page uses the address you opened Home Assistant with.
+
+The add-on certificate lasts 825 days (Apple's limit). The add-on log warns 30 days
+before it ends: run `make_certs.sh` again (it keeps the CA, so devices need nothing new)
+and copy the new `wm.cert.pem` / `wm.key.pem` to `/ssl/web_megaphone/`.
+
+Without files in `/ssl/web_megaphone/` the add-on uses its built-in self-signed
+certificate, and browsers warn as before.
 
 ---
 
@@ -161,7 +197,7 @@ html/index.html
 ```
 
 ### Browser HTTPS warnings
-Self-signed certificates always warn; this is normal on LAN.
+Install the home certificate: see **Certificates** above.
 
 ---
 

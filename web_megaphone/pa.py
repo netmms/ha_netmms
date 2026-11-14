@@ -5,6 +5,7 @@
   GET  /status      JSON: is a message playing, how many are waiting, the last one done
   POST /            a recording (multipart field "audio_data", a WAV file) -> JSON {"ok", "id"}
   POST /repeat      play the last message again                          -> JSON {"ok", "id"}
+  GET  /ca.crt      the home CA certificate, for installing on phones (if present)
 
 The server answers right away and plays the messages one after another in a
 background thread (play_msg.sh), so two phones never talk over each other and
@@ -28,8 +29,13 @@ PLAYER = "/play_msg.sh"
 SHARE_DIR = "/share/web_megaphone"
 LAST_MSG = os.path.join(SHARE_DIR, "last_msg.wav")
 MAX_UPLOAD = 20 * 1024 * 1024        # about 3.5 minutes of 48 kHz mono
-CERT = "/certs/wm.cert.pem"
-KEY = "/certs/wm.key.pem"
+# HTTPS certificate: the one made by tools/make_certs.sh and copied to
+# Home Assistant's /ssl/web_megaphone/ (trusted by your devices, no warning);
+# otherwise the old self-signed one built into the add-on (browser warning).
+SSL_DIR = "/ssl/web_megaphone"
+CERTS = [(os.path.join(SSL_DIR, "wm.cert.pem"), os.path.join(SSL_DIR, "wm.key.pem")),
+         ("/certs/wm.cert.pem", "/certs/wm.key.pem")]
+CA_CERT = os.path.join(SSL_DIR, "ca.crt")
 
 TYPES = {
     "html": "text/html; charset=utf-8", "css": "text/css", "js": "application/javascript",
@@ -37,6 +43,14 @@ TYPES = {
     "jpg": "image/jpeg", "jpeg": "image/jpeg", "gif": "image/gif", "svg": "image/svg+xml",
     "wav": "audio/wav", "xml": "application/xml", "webmanifest": "application/manifest+json",
 }
+
+
+def cert_end(path):
+    """The certificate's 'valid until' text, or '' (uses Python's own decoder)."""
+    try:
+        return ssl._ssl._test_decode_cert(path).get("notAfter", "")
+    except Exception:
+        return ""
 
 
 def log(msg):
@@ -162,6 +176,12 @@ class Handler(BaseHTTPRequestHandler):
         path = self.path.split("?", 1)[0].split("#", 1)[0]
         if path == "/status":
             return self.send_json(player.status())
+        if path == "/ca.crt":
+            # iPhone Safari offers to install it as a profile; Android saves it
+            if not os.path.isfile(CA_CERT):
+                return self.send_body(404, "text/html", b"<h1>No home certificate installed</h1>")
+            with open(CA_CERT, "rb") as f:
+                return self.send_body(200, "application/x-x509-ca-cert", f.read())
         if path == "/":
             path = "/index.html"
         full = os.path.realpath(os.path.join(HTML_DIR, path.lstrip("/")))
@@ -214,11 +234,26 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main():
-    if not os.path.isfile(CERT) or not os.path.isfile(KEY):
-        log(f"ERROR: certificate or key not found at {CERT} / {KEY}")
+    found = [(c, k) for c, k in CERTS if os.path.isfile(c) and os.path.isfile(k)]
+    if not found:
+        log("ERROR: no certificate found (" + ", ".join(c for c, _ in CERTS) + ")")
         sys.exit(1)
+    cert, key = found[0]
     context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-    context.load_cert_chain(certfile=CERT, keyfile=KEY)
+    context.load_cert_chain(certfile=cert, keyfile=key)
+    end = cert_end(cert)
+    if cert.startswith(SSL_DIR):
+        log(f"certificate {cert}, valid until {end or '?'}")
+        try:
+            left = (ssl.cert_time_to_seconds(end) - time.time()) / 86400 if end else 999
+            if left < 30:
+                log(f"WARNING: the certificate ends in {left:.0f} days: run tools/make_certs.sh "
+                    f"and copy the new wm.cert.pem / wm.key.pem to {SSL_DIR}")
+        except ValueError:
+            pass
+    else:
+        log(f"certificate {cert} (built-in, self-signed: browsers will warn). "
+            f"For no warning see 'Certificates' in the add-on README.")
 
     httpd = ThreadingHTTPServer(("", PORT), Handler)
     httpd.daemon_threads = True

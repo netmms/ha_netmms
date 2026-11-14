@@ -157,6 +157,8 @@ body[data-rec="recording"] .time { color: var(--rec); }
 .ghost[hidden] { display: none; }
 #cancel { color: var(--rec); border-color: #f0c9c4; }
 
+footer a { color: var(--muted); }
+
 footer {
   margin-top: 14px;
   font-size: 0.75rem;
