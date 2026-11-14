@@ -1,0 +1,42 @@
+# Starting point: one automation, five triggers, and the PRAYER NAME decides what happens.
+#
+# Each trigger fires when the current time equals the time in that sensor. Its `id` is the
+# prayer's name, so `trigger.id` tells the actions which prayer fired. Fajr takes one branch,
+# every other prayer takes the default branch (two different sounds). Sunrise is not a trigger.
+#
+# The two actions below only post a notification, so you can see the triggers work.
+# Replace them with whatever plays your two sounds.
+alias: Adhan
+description: Fires at each prayer time; Fajr and the other prayers can play different sounds
+mode: single
+triggers:
+  - trigger: time
+    at: sensor.prayer_times_fajr
+    id: Fajr
+  - trigger: time
+    at: sensor.prayer_times_dhuhr
+    id: Dhuhr
+  - trigger: time
+    at: sensor.prayer_times_asr
+    id: Asr
+  - trigger: time
+    at: sensor.prayer_times_maghrib
+    id: Maghrib
+  - trigger: time
+    at: sensor.prayer_times_isha
+    id: Isha
+actions:
+  - choose:
+      - conditions:
+          - condition: trigger
+            id: Fajr
+        sequence:
+          - action: persistent_notification.create
+            data:
+              title: Prayer Times
+              message: "Fajr: play the Fajr sound here"
+    default:
+      - action: persistent_notification.create
+        data:
+          title: Prayer Times
+          message: "{{ trigger.id }}: play the normal sound here"

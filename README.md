@@ -7,6 +7,7 @@ This repository contains:
 - **Local Audio Player** — play audio files locally or stream them into Snapserver.
 - **Snapserver Pipe** — backbone of multi-room audio distribution using a named pipe.
 - **Web Megaphone** — an HTTPS, airport-style PA system that records and plays announcements.
+- **Prayer Times** — prayer-time sensors and the next prayer for Home Assistant over MQTT, calculated like the NETMMS clock.
 
 ---
 
@@ -32,6 +33,9 @@ This repository contains:
 
 - **Web Megaphone**  
   A browser-based HTTPS PA system that plays an alert beep and then your recorded message.
+
+- **Prayer Times**  
+  Publishes the six prayer times and the next prayer as Home Assistant sensors, and rolls over right after Isha. Includes a starting-point automation that fires at each prayer time.
 
 ---
 
