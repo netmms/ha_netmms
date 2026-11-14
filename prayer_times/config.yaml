@@ -1,5 +1,5 @@
 name: "Prayer Times"
-version: "1.00"
+version: "1.01"
 slug: "prayer_times"
 description: "Prayer times (Umm al-Qura or Egyptian) as Home Assistant sensors over MQTT, calculated like the NETMMS clock. Rolls over right after Isha."
 url: "https://github.com/netmms/ha_netmms/tree/main/prayer_times"

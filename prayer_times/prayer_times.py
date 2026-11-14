@@ -21,7 +21,7 @@ import paho.mqtt.client as mqtt
 
 import prayer_calc as pc
 
-VERSION = "1.00"
+VERSION = "1.01"
 OPTIONS_FILE = os.environ.get("PRAYER_OPTIONS", "/data/options.json")   # the env var is for testing
 HEARTBEAT_S = 30 * 60          # republish at least this often, in case a message was lost
 KEYS = {n: n.lower() for n in pc.PRAYER_NAMES}                        # "Fajr" -> "fajr"

@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.01
+
+- Fix the build on current Home Assistant: the Dockerfile now has a default base image (the Supervisor no longer passes `BUILD_FROM`).
+
 ## 1.00
 
 - First release: six prayer-time sensors (Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha), Next Prayer and Next Prayer Time, over MQTT discovery as one device.

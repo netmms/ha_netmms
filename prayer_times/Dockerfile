@@ -1,5 +1,7 @@
-ARG BUILD_FROM
-FROM $BUILD_FROM
+# The Supervisor passes only BUILD_ARCH and BUILD_VERSION, so BUILD_FROM needs a default
+ARG BUILD_ARCH=amd64
+ARG BUILD_FROM=ghcr.io/home-assistant/${BUILD_ARCH}-base:latest
+FROM ${BUILD_FROM}
 
 ENV LANG C.UTF-8
 
