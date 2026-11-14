@@ -72,9 +72,9 @@ The sensors hold the times of the **current prayer day**, which runs from one Is
 
 ---
 
-# Automation: act at each prayer time
+# Automation: adhan at each prayer time
 
-`examples/adhan_automation.yaml` is a starting point. One time trigger per prayer, each with the prayer name as its `id`, and the name decides what the actions do: Fajr takes its own branch (its own sound), every other prayer takes the default branch. The actions in the example only post a notification so you can see the triggers work; replace them with whatever plays your sounds.
+`examples/adhan_automation.yaml` is a complete automation. One time trigger per prayer, each with the prayer name as its `id`, and the name decides the sound: Fajr plays `adhan_fajr.mp3`, every other prayer plays `adhan_normal.mp3`.
 
 ```yaml
 triggers:
@@ -90,12 +90,18 @@ actions:
       - conditions:
           - condition: trigger
             id: Fajr
-        sequence: []        # the Fajr sound
-    default: []             # the normal sound; {{ trigger.id }} is the prayer's name
+        sequence:
+          - action: script.play_media
+            data: { media: adhan_fajr.mp3, vol: def }
+    default:
+      - action: script.play_media
+        data: { media: adhan_normal.mp3, vol: def }
 ```
 
 - A time trigger on a timestamp sensor fires at that exact moment, to the second.
+- The prayer name comes from the trigger itself, so it cannot be confused by the next-prayer sensor changing a moment later.
 - Sunrise is not a trigger, so nothing plays at sunrise.
+- `script.play_media` is the example's own script for playing a file. Replace it with whatever plays your sounds.
 
 ---
 
