@@ -178,8 +178,8 @@ The add-on certificate lasts 825 days (Apple's limit). The add-on log warns 30 d
 before it ends: run `make_certs.sh` again (it keeps the CA, so devices need nothing new)
 and copy the new `wm.cert.pem` / `wm.key.pem` to `/ssl/web_megaphone/`.
 
-Without files in `/ssl/web_megaphone/` the add-on uses its built-in self-signed
-certificate, and browsers warn as before.
+Without files in `/ssl/web_megaphone/` the add-on makes its own self-signed
+certificate when it starts (kept in its `/data`), and browsers warn as before.
 
 ---
 

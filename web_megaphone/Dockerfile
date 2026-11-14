@@ -11,12 +11,12 @@ RUN apk add --no-cache \
     alsa-utils \
     jq \
     sox \
+    openssl \
     python3
 
 # Copy scripts and assets
 COPY run.sh pa.py play_msg.sh /
 COPY pa_sound.wav /
-COPY wm.cert.pem wm.key.pem /certs/
 
 # HTML assets
 RUN mkdir -p /html

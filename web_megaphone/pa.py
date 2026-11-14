@@ -31,10 +31,10 @@ LAST_MSG = os.path.join(SHARE_DIR, "last_msg.wav")
 MAX_UPLOAD = 20 * 1024 * 1024        # about 3.5 minutes of 48 kHz mono
 # HTTPS certificate: the one made by tools/make_certs.sh and copied to
 # Home Assistant's /ssl/web_megaphone/ (trusted by your devices, no warning);
-# otherwise the old self-signed one built into the add-on (browser warning).
+# otherwise the self-signed one run.sh makes in /data (browser warning).
 SSL_DIR = "/ssl/web_megaphone"
 CERTS = [(os.path.join(SSL_DIR, "wm.cert.pem"), os.path.join(SSL_DIR, "wm.key.pem")),
-         ("/certs/wm.cert.pem", "/certs/wm.key.pem")]
+         ("/data/wm.cert.pem", "/data/wm.key.pem")]
 CA_CERT = os.path.join(SSL_DIR, "ca.crt")
 
 TYPES = {
@@ -252,7 +252,7 @@ def main():
         except ValueError:
             pass
     else:
-        log(f"certificate {cert} (built-in, self-signed: browsers will warn). "
+        log(f"certificate {cert} (self-signed: browsers will warn). "
             f"For no warning see 'Certificates' in the add-on README.")
 
     httpd = ThreadingHTTPServer(("", PORT), Handler)
