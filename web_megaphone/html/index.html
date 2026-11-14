@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#eef1f4">
+  <meta name="theme-color" content="#e6f8f2">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="PA Mic">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -19,12 +19,30 @@
     <div class="stage">
       <div id="halo" class="halo"></div>
       <button id="talk" class="talk" type="button" aria-label="Record a message">
-        <svg class="ico-mic" viewBox="0 0 24 24" aria-hidden="true">
-          <rect x="9" y="3" width="6" height="11" rx="3"/>
-          <path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7"/>
-        </svg>
-        <svg class="ico-send" viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M4 12l16-8-6 16-2.5-6.5L4 12z"/>
+        <svg class="art" viewBox="0 0 512 512" aria-hidden="true">
+          <defs>
+            <g id="mic-sil">
+              <rect x="204" y="96" width="104" height="196" rx="52"/>
+              <path d="M166,236 a90,90 0 0 0 180,0" fill="none" stroke="currentColor" stroke-width="24" stroke-linecap="round"/>
+              <rect x="244" y="322" width="24" height="54"/>
+              <rect x="186" y="368" width="140" height="28" rx="14"/>
+            </g>
+            <path id="send-sil" d="M120,262 L392,130 L298,392 L262,300 Z" stroke="currentColor" stroke-width="28" stroke-linejoin="round"/>
+          </defs>
+          <g transform="translate(26,-16) scale(.9)">
+            <g class="ico-mic">
+              <g class="shade"><use href="#mic-sil" x="4" y="4"/><use href="#mic-sil" x="8" y="8"/><use href="#mic-sil" x="12" y="12"/><use href="#mic-sil" x="16" y="16"/><use href="#mic-sil" x="20" y="20"/><use href="#mic-sil" x="24" y="24"/><use href="#mic-sil" x="28" y="28"/><use href="#mic-sil" x="32" y="32"/><use href="#mic-sil" x="36" y="36"/><use href="#mic-sil" x="40" y="40"/><use href="#mic-sil" x="44" y="44"/><use href="#mic-sil" x="48" y="48"/><use href="#mic-sil" x="52" y="52"/><use href="#mic-sil" x="56" y="56"/><use href="#mic-sil" x="60" y="60"/><use href="#mic-sil" x="64" y="64"/><use href="#mic-sil" x="68" y="68"/><use href="#mic-sil" x="72" y="72"/><use href="#mic-sil" x="76" y="76"/><use href="#mic-sil" x="80" y="80"/><use href="#mic-sil" x="84" y="84"/><use href="#mic-sil" x="88" y="88"/><use href="#mic-sil" x="92" y="92"/><use href="#mic-sil" x="96" y="96"/><use href="#mic-sil" x="100" y="100"/><use href="#mic-sil" x="104" y="104"/><use href="#mic-sil" x="108" y="108"/><use href="#mic-sil" x="112" y="112"/><use href="#mic-sil" x="116" y="116"/><use href="#mic-sil" x="120" y="120"/><use href="#mic-sil" x="124" y="124"/><use href="#mic-sil" x="128" y="128"/><use href="#mic-sil" x="132" y="132"/><use href="#mic-sil" x="136" y="136"/><use href="#mic-sil" x="140" y="140"/><use href="#mic-sil" x="144" y="144"/><use href="#mic-sil" x="148" y="148"/><use href="#mic-sil" x="152" y="152"/><use href="#mic-sil" x="156" y="156"/><use href="#mic-sil" x="160" y="160"/><use href="#mic-sil" x="164" y="164"/><use href="#mic-sil" x="168" y="168"/><use href="#mic-sil" x="172" y="172"/><use href="#mic-sil" x="176" y="176"/><use href="#mic-sil" x="180" y="180"/><use href="#mic-sil" x="184" y="184"/><use href="#mic-sil" x="188" y="188"/><use href="#mic-sil" x="192" y="192"/><use href="#mic-sil" x="196" y="196"/><use href="#mic-sil" x="200" y="200"/><use href="#mic-sil" x="204" y="204"/><use href="#mic-sil" x="208" y="208"/><use href="#mic-sil" x="212" y="212"/><use href="#mic-sil" x="216" y="216"/><use href="#mic-sil" x="220" y="220"/><use href="#mic-sil" x="224" y="224"/><use href="#mic-sil" x="228" y="228"/><use href="#mic-sil" x="232" y="232"/><use href="#mic-sil" x="236" y="236"/><use href="#mic-sil" x="240" y="240"/><use href="#mic-sil" x="244" y="244"/><use href="#mic-sil" x="248" y="248"/><use href="#mic-sil" x="252" y="252"/></g>
+              <rect x="204" y="96" width="104" height="196" rx="52" fill="#FFE08A"/>
+              <path d="M226,150 h60 M226,186 h60 M226,222 h60" stroke="#FFFFFF" stroke-width="10" stroke-linecap="round" opacity=".55"/>
+              <path d="M166,236 a90,90 0 0 0 180,0" fill="none" stroke="#FFFFFF" stroke-width="24" stroke-linecap="round"/>
+              <rect x="244" y="322" width="24" height="54" fill="#FFFFFF"/>
+              <rect x="186" y="368" width="140" height="28" rx="14" fill="#FFFFFF"/>
+            </g>
+            <g class="ico-send">
+              <g class="shade"><use href="#send-sil" x="4" y="4"/><use href="#send-sil" x="8" y="8"/><use href="#send-sil" x="12" y="12"/><use href="#send-sil" x="16" y="16"/><use href="#send-sil" x="20" y="20"/><use href="#send-sil" x="24" y="24"/><use href="#send-sil" x="28" y="28"/><use href="#send-sil" x="32" y="32"/><use href="#send-sil" x="36" y="36"/><use href="#send-sil" x="40" y="40"/><use href="#send-sil" x="44" y="44"/><use href="#send-sil" x="48" y="48"/><use href="#send-sil" x="52" y="52"/><use href="#send-sil" x="56" y="56"/><use href="#send-sil" x="60" y="60"/><use href="#send-sil" x="64" y="64"/><use href="#send-sil" x="68" y="68"/><use href="#send-sil" x="72" y="72"/><use href="#send-sil" x="76" y="76"/><use href="#send-sil" x="80" y="80"/><use href="#send-sil" x="84" y="84"/><use href="#send-sil" x="88" y="88"/><use href="#send-sil" x="92" y="92"/><use href="#send-sil" x="96" y="96"/><use href="#send-sil" x="100" y="100"/><use href="#send-sil" x="104" y="104"/><use href="#send-sil" x="108" y="108"/><use href="#send-sil" x="112" y="112"/><use href="#send-sil" x="116" y="116"/><use href="#send-sil" x="120" y="120"/><use href="#send-sil" x="124" y="124"/><use href="#send-sil" x="128" y="128"/><use href="#send-sil" x="132" y="132"/><use href="#send-sil" x="136" y="136"/><use href="#send-sil" x="140" y="140"/><use href="#send-sil" x="144" y="144"/><use href="#send-sil" x="148" y="148"/><use href="#send-sil" x="152" y="152"/><use href="#send-sil" x="156" y="156"/><use href="#send-sil" x="160" y="160"/><use href="#send-sil" x="164" y="164"/><use href="#send-sil" x="168" y="168"/><use href="#send-sil" x="172" y="172"/><use href="#send-sil" x="176" y="176"/><use href="#send-sil" x="180" y="180"/><use href="#send-sil" x="184" y="184"/><use href="#send-sil" x="188" y="188"/><use href="#send-sil" x="192" y="192"/><use href="#send-sil" x="196" y="196"/><use href="#send-sil" x="200" y="200"/><use href="#send-sil" x="204" y="204"/><use href="#send-sil" x="208" y="208"/><use href="#send-sil" x="212" y="212"/><use href="#send-sil" x="216" y="216"/><use href="#send-sil" x="220" y="220"/><use href="#send-sil" x="224" y="224"/><use href="#send-sil" x="228" y="228"/><use href="#send-sil" x="232" y="232"/><use href="#send-sil" x="236" y="236"/><use href="#send-sil" x="240" y="240"/><use href="#send-sil" x="244" y="244"/><use href="#send-sil" x="248" y="248"/><use href="#send-sil" x="252" y="252"/></g>
+              <use href="#send-sil" fill="#FFFFFF" color="#FFFFFF"/>
+            </g>
+          </g>
         </svg>
         <span id="talk-label">Talk</span>
       </button>

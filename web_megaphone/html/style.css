@@ -1,17 +1,20 @@
 /* PA Microphone page: light, phone first, one big button. */
 :root {
-  --bg: #eef1f4;
+  /* pastel mint, matching the add-on icon */
+  --bg: #e6f8f2;
   --card: #ffffff;
-  --ink: #1d2733;
-  --muted: #6b7785;
-  --line: #dde3e9;
-  --go: #2e7d4f;        /* ready */
-  --go-dark: #24663f;
-  --rec: #d23a2c;       /* recording */
-  --busy: #8a96a3;      /* sending */
-  --ok: #2e7d4f;
-  --err: #c0392b;
-  --lvl: 0;             /* mic level 0..1, set by app.js */
+  --ink: #1e6656;
+  --muted: #6b9188;
+  --line: #d3eee5;
+  --go: #6fd8bc;          /* ready: the icon's mint */
+  --go-shade: #56c2a6;    /* its long shadow */
+  --rec: #ff9c86;         /* recording: pastel coral */
+  --rec-shade: #f2826b;
+  --rec-ink: #cf563f;
+  --busy: #b9ddd3;        /* sending */
+  --ok: #1e8f6e;
+  --err: #cf563f;
+  --lvl: 0;               /* mic level 0..1, set by app.js */
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -38,7 +41,7 @@ body {
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: 20px;
-  box-shadow: 0 6px 24px rgba(29, 39, 51, 0.06);
+  box-shadow: 0 6px 24px rgba(30, 102, 86, 0.08);
   padding: 28px 22px 22px;
   text-align: center;
 }
@@ -64,7 +67,7 @@ h1 { font-size: 1.35rem; font-weight: 600; letter-spacing: 0.01em; }
   transition: transform 60ms linear, opacity 200ms;
 }
 body[data-rec="recording"] .halo {
-  opacity: 0.18;
+  opacity: 0.32;
   transform: scale(calc(1 + var(--lvl) * 0.32));
 }
 
@@ -73,34 +76,37 @@ body[data-rec="recording"] .halo {
   inset: 12px;
   border: none;
   border-radius: 50%;
+  overflow: hidden;              /* clips the long shadow to the circle */
   background: var(--go);
   color: #fff;
   font: inherit;
   font-size: 1.05rem;
   font-weight: 600;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
   cursor: pointer;
-  box-shadow: 0 6px 16px rgba(46, 125, 79, 0.28), inset 0 -4px 0 rgba(0, 0, 0, 0.12);
+  box-shadow: 0 8px 20px rgba(86, 194, 166, 0.35);
   transition: background 150ms, box-shadow 150ms, transform 80ms;
   touch-action: manipulation;
 }
 .talk:active { transform: scale(0.97); }
-.talk:focus-visible { outline: 3px solid #9cc7ff; outline-offset: 4px; }
-.talk svg { width: 46px; height: 46px; fill: none; stroke: currentColor; stroke-width: 1.8;
-            stroke-linecap: round; stroke-linejoin: round; }
-.talk .ico-mic rect { fill: currentColor; stroke: none; }
-.talk .ico-send { display: none; fill: currentColor; stroke: none; }
+.talk:focus-visible { outline: 3px solid #9be3cf; outline-offset: 4px; }
+.talk .art { position: absolute; inset: 0; width: 100%; height: 100%; }
+.talk .shade { color: var(--go-shade); fill: var(--go-shade); transition: color 150ms, fill 150ms; }
+.talk .ico-send { display: none; }
+#talk-label {
+  position: absolute;
+  left: 0; right: 0; bottom: 22px;
+  text-align: center;
+  letter-spacing: 0.02em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+}
 
 body[data-rec="recording"] .talk {
   background: var(--rec);
-  box-shadow: 0 6px 18px rgba(210, 58, 44, 0.32), inset 0 -4px 0 rgba(0, 0, 0, 0.12);
+  box-shadow: 0 8px 20px rgba(242, 130, 107, 0.4);
 }
+body[data-rec="recording"] .talk .shade { color: var(--rec-shade); fill: var(--rec-shade); }
 body[data-rec="recording"] .talk .ico-mic { display: none; }
-body[data-rec="recording"] .talk .ico-send { display: block; }
+body[data-rec="recording"] .talk .ico-send { display: inline; }
 
 body[data-rec="starting"] .talk,
 body[data-rec="sending"] .talk {
@@ -108,6 +114,8 @@ body[data-rec="sending"] .talk {
   box-shadow: none;
   pointer-events: none;
 }
+body[data-rec="starting"] .talk .shade,
+body[data-rec="sending"] .talk .shade { color: #a6cfc4; fill: #a6cfc4; }
 
 /* ---- timer and status */
 .time {
@@ -117,7 +125,7 @@ body[data-rec="sending"] .talk {
   color: var(--muted);
   min-height: 2rem;
 }
-body[data-rec="recording"] .time { color: var(--rec); }
+body[data-rec="recording"] .time { color: var(--rec-ink); }
 .time.ending { animation: blink 1s steps(2) infinite; }
 @keyframes blink { 50% { opacity: 0.35; } }
 
@@ -127,7 +135,7 @@ body[data-rec="recording"] .time { color: var(--rec); }
   font-size: 0.95rem;
   color: var(--muted);
 }
-.status.rec  { color: var(--rec); }
+.status.rec  { color: var(--rec-ink); }
 .status.play { color: var(--ink); }
 .status.ok   { color: var(--ok); font-weight: 600; }
 .status.err  { color: var(--err); font-weight: 600; }
@@ -145,17 +153,17 @@ body[data-rec="recording"] .time { color: var(--rec); }
   height: 2.6rem;
   border: 1px solid var(--line);
   border-radius: 12px;
-  background: #f7f9fb;
+  background: #f3fbf8;
   color: var(--ink);
   font: inherit;
   font-size: 0.95rem;
   cursor: pointer;
   touch-action: manipulation;
 }
-.ghost:active { background: #e9eef3; }
-.ghost:disabled { color: #b3bcc6; cursor: default; background: #f7f9fb; }
+.ghost:active { background: #e3f5ef; }
+.ghost:disabled { color: #a9c9c0; cursor: default; background: #f3fbf8; }
 .ghost[hidden] { display: none; }
-#cancel { color: var(--rec); border-color: #f0c9c4; }
+#cancel { color: var(--rec-ink); border-color: #f8d3ca; }
 
 footer a { color: var(--muted); }
 
@@ -168,7 +176,7 @@ footer {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .halo, .talk { transition: none; }
+  .halo, .talk, .talk .shade { transition: none; }
   .time.ending { animation: none; }
 }
 
