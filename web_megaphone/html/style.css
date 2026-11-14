@@ -1,94 +1,175 @@
-* {
-  padding: 0;
-  margin: 0;
+/* PA Microphone page: light, phone first, one big button. */
+:root {
+  --bg: #eef1f4;
+  --card: #ffffff;
+  --ink: #1d2733;
+  --muted: #6b7785;
+  --line: #dde3e9;
+  --go: #2e7d4f;        /* ready */
+  --go-dark: #24663f;
+  --rec: #d23a2c;       /* recording */
+  --busy: #8a96a3;      /* sending */
+  --ok: #2e7d4f;
+  --err: #c0392b;
+  --lvl: 0;             /* mic level 0..1, set by app.js */
 }
 
-a {
-  color: #337ab7;
-}
-p {
-  margin-top: 1rem;
-}
-a:hover {
-  color:#23527c;
-}
-a:visited {
-  color: #8d75a3;
-}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body { height: 100%; }
 
 body {
-  margin: 1rem;
-  padding: 1rem;
-  font-family: sans-serif;
-  max-width: 28rem;
-  margin: 0 auto;
-  position: relative;
-}
-
-#controls {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   display: flex;
-  margin-top: 2rem;
-}
-
-button {
-  flex-grow: 1;
-  height: 2.5rem;
-  min-width: 2rem;
-  width: 100%;
-  border: none;
-  border-radius: 0.15rem;
-  background: #6B8E23;
-  margin-left: 2px;
-  box-shadow: inset 0 -0.15rem 0 rgba(0, 0, 0, 0.2);
-  cursor: pointer;
-  display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
-  color:#ffffff;
-  font-weight: bold;
-  font-size: 1rem;
-}
-/*button:hover, button:focus {
- outline: none;
- outline: solid yellow;
- background: #c72d1c;
+  justify-content: center;
+  padding: 16px;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
-button::-moz-focus-inner {
-  border: 0;
-}*/
-
-button:active {
-  box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.2);
-  line-height: 3rem;
-}
-
-button:disabled {
-  pointer-events: none;
-  background: lightgray;
-}
-button:first-child {
-  margin-left: 0;
-}
-audio {
-  display: block;
+.card {
   width: 100%;
-  margin-top: 0.2rem;
+  max-width: 24rem;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  box-shadow: 0 6px 24px rgba(29, 39, 51, 0.06);
+  padding: 28px 22px 22px;
+  text-align: center;
 }
 
-li {
-  list-style: none;
-  margin-bottom: 1rem;
+h1 { font-size: 1.35rem; font-weight: 600; letter-spacing: 0.01em; }
+.sub { color: var(--muted); font-size: 0.9rem; margin-top: 4px; }
+
+/* ---- the big button and its level halo */
+.stage {
+  position: relative;
+  width: 184px;
+  height: 184px;
+  margin: 30px auto 14px;
 }
 
-#formats, #version, #counter {
- margin-top: 0.25rem;
- margin-left: 0.25rem;
- font-size: 70%;
- display:inline;
+.halo {
+  position: absolute;
+  inset: 12px;
+  border-radius: 50%;
+  background: var(--rec);
+  opacity: 0;
+  transform: scale(1);
+  transition: transform 60ms linear, opacity 200ms;
+}
+body[data-rec="recording"] .halo {
+  opacity: 0.18;
+  transform: scale(calc(1 + var(--lvl) * 0.32));
 }
 
-#status {
- font-size: 90%;
- font-style: italic;
+.talk {
+  position: absolute;
+  inset: 12px;
+  border: none;
+  border-radius: 50%;
+  background: var(--go);
+  color: #fff;
+  font: inherit;
+  font-size: 1.05rem;
+  font-weight: 600;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(46, 125, 79, 0.28), inset 0 -4px 0 rgba(0, 0, 0, 0.12);
+  transition: background 150ms, box-shadow 150ms, transform 80ms;
+  touch-action: manipulation;
 }
+.talk:active { transform: scale(0.97); }
+.talk:focus-visible { outline: 3px solid #9cc7ff; outline-offset: 4px; }
+.talk svg { width: 46px; height: 46px; fill: none; stroke: currentColor; stroke-width: 1.8;
+            stroke-linecap: round; stroke-linejoin: round; }
+.talk .ico-mic rect { fill: currentColor; stroke: none; }
+.talk .ico-send { display: none; fill: currentColor; stroke: none; }
+
+body[data-rec="recording"] .talk {
+  background: var(--rec);
+  box-shadow: 0 6px 18px rgba(210, 58, 44, 0.32), inset 0 -4px 0 rgba(0, 0, 0, 0.12);
+}
+body[data-rec="recording"] .talk .ico-mic { display: none; }
+body[data-rec="recording"] .talk .ico-send { display: block; }
+
+body[data-rec="starting"] .talk,
+body[data-rec="sending"] .talk {
+  background: var(--busy);
+  box-shadow: none;
+  pointer-events: none;
+}
+
+/* ---- timer and status */
+.time {
+  font-size: 1.6rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  min-height: 2rem;
+}
+body[data-rec="recording"] .time { color: var(--rec); }
+.time.ending { animation: blink 1s steps(2) infinite; }
+@keyframes blink { 50% { opacity: 0.35; } }
+
+.status {
+  margin-top: 6px;
+  min-height: 1.5rem;
+  font-size: 0.95rem;
+  color: var(--muted);
+}
+.status.rec  { color: var(--rec); }
+.status.play { color: var(--ink); }
+.status.ok   { color: var(--ok); font-weight: 600; }
+.status.err  { color: var(--err); font-weight: 600; }
+
+/* ---- small buttons */
+.actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 20px;
+}
+.ghost {
+  flex: 1 1 0;
+  max-width: 10rem;
+  height: 2.6rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #f7f9fb;
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.95rem;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.ghost:active { background: #e9eef3; }
+.ghost:disabled { color: #b3bcc6; cursor: default; background: #f7f9fb; }
+.ghost[hidden] { display: none; }
+#cancel { color: var(--rec); border-color: #f0c9c4; }
+
+footer {
+  margin-top: 14px;
+  font-size: 0.75rem;
+  color: var(--muted);
+  display: flex;
+  gap: 12px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .halo, .talk { transition: none; }
+  .time.ending { animation: none; }
+}
+
+/* while recording only Cancel and Send make sense */
+body[data-rec="recording"] #repeat,
+body[data-rec="starting"] #repeat { display: none; }

@@ -1,5 +1,5 @@
 name: "Web Megaphone"
-version: "0.80"
+version: "0.81"
 slug: "web_megaphone"
 description: "Web PA System"
 url: "https://github.com/netmms/ha_netmms/tree/main/web_megaphone"
@@ -29,14 +29,16 @@ map:
   - config:rw
 
 options:
-  volume1: 40
-  volume2: 80
+  volume1: 30
+  volume2: 100
+  voice_boost: 6
   use_pipe: false
   pipe: "/share/snapserver/stream"
 
 schema:
-  volume1: int
-  volume2: int
+  volume1: int(0,100)
+  volume2: int(0,100)
+  voice_boost: int(0,10)
   use_pipe: bool
   pipe: str
   
