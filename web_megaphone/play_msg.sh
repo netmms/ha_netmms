@@ -58,11 +58,11 @@ else
 fi
 
 # 48 kHz stereo 16-bit, the Snapcast format; same for local playback
-if ! sox -q "${MSG}" -r 48000 -c 2 -b 16 "${VOICE}" "${TRIM[@]}" "${VOICE_FX[@]}" vol "${V2}"; then
+if ! sox -V1 "${MSG}" -r 48000 -c 2 -b 16 "${VOICE}" "${TRIM[@]}" "${VOICE_FX[@]}" vol "${V2}"; then
     bashio::log.warning "Could not process the message, playing it as recorded"
-    sox -q -G "${MSG}" -r 48000 -c 2 -b 16 "${VOICE}" vol "${V2}" || exit 1
+    sox -V1 -G "${MSG}" -r 48000 -c 2 -b 16 "${VOICE}" vol "${V2}" || exit 1
 fi
-sox -q -G "${CHIME_SRC}" -r 48000 -c 2 -b 16 "${CHIME}" vol "${V1}" || bashio::log.warning "Could not prepare the chime"
+sox -V1 -G "${CHIME_SRC}" -r 48000 -c 2 -b 16 "${CHIME}" vol "${V1}" || bashio::log.warning "Could not prepare the chime"
 
 bashio::log.info "Playing message (${LEN%.*}s): chime ${VOL1}%, voice ${VOL2}% +${BOOST}dB, pipe=${USE_PIPE}"
 
@@ -75,7 +75,7 @@ if [[ "${USE_PIPE}" == "true" ]]; then
     PARTS=()
     [[ -s "${CHIME}" ]] && PARTS+=("${CHIME}")
     PARTS+=("${VOICE}")
-    if ! sox -q -G "${PARTS[@]}" -t raw -b 16 -e signed -r 48000 -c 2 "${PIPE_PATH}"; then
+    if ! sox -V1 -G "${PARTS[@]}" -t raw -b 16 -e signed -r 48000 -c 2 "${PIPE_PATH}"; then
         bashio::log.error "Failed to send the message to the pipe."
         exit 1
     fi

@@ -149,8 +149,14 @@ class Handler(BaseHTTPRequestHandler):
 
     def log_message(self, fmt, *args):
         # the page asks /status twice a second while a message plays: keep the log clean
-        if "/status" not in self.requestline:
+        if "/status" not in getattr(self, "requestline", ""):
             log("%s %s" % (self.address_string(), fmt % args))
+
+    def log_error(self, fmt, *args):
+        # a browser closing an idle connection (keep-alive) is normal: not an error
+        if "timed out" in fmt:
+            return
+        self.log_message(fmt, *args)
 
     def handle(self):
         try:
