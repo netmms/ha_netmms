@@ -1,0 +1,36 @@
+name: "Quran Stream Server"
+version: "1.0.1"
+slug: "quran_stream"
+description: "Serves the MP3 files in /media/quran (and its sub-folders) to the ESP32 stream players (S-Player)."
+url: "https://github.com/netmms/ha_netmms/tree/main/quran_stream"
+
+# Icons shown in the Home Assistant add-on store
+logo: "https://raw.githubusercontent.com/netmms/ha_netmms/main/quran_stream/logo.png"
+icon: "https://raw.githubusercontent.com/netmms/ha_netmms/main/quran_stream/icon.png"
+
+init: false
+arch:
+  - aarch64
+  - amd64
+  - armv7
+
+startup: services
+boot: auto
+
+ports:
+  8099/tcp: 8099
+ports_description:
+  8099/tcp: "Stream server (the players use http://HA-IP:8099)"
+
+map:
+  - media:ro
+
+options:
+  folder: "/media/quran"
+  port: 8099
+
+schema:
+  folder: str
+  port: port
+
+watchdog: "http://[HOST]:[PORT:8099]/playlist.txt"

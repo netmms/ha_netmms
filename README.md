@@ -8,6 +8,7 @@ This repository contains:
 - **Snapserver Pipe** — backbone of multi-room audio distribution using a named pipe.
 - **Web Megaphone** — an HTTPS, airport-style PA system that records and plays announcements.
 - **Prayer Times** — prayer-time sensors and the next prayer for Home Assistant over MQTT, calculated like the NETMMS clock.
+- **Quran Stream Server** — serves MP3 files (and sub-folders) from the Media share to the NETMMS ESP32 stream players.
 
 ---
 
@@ -36,6 +37,9 @@ This repository contains:
 
 - **Prayer Times**  
   Publishes the six prayer times and the next prayer as Home Assistant sensors, and rolls over right after Isha. Includes a starting-point automation that fires at each prayer time.
+
+- **Quran Stream Server**  
+  A small HTTP file server on port 8099 for the ESP32 stream players: plays the MP3 files in `/media/quran` and its sub-folders, in name order.
 
 ---
 
